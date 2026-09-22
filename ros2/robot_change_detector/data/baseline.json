@@ -1,0 +1,23 @@
+[
+    {
+        "position": {
+            "x": 2.0,
+            "y": 3.0
+        },
+        "state": 1,
+        "objects": [
+            {
+                "label": "box"
+            }
+        ]
+    },
+
+    {
+        "position": {
+            "x": 5.0,
+            "y": 2.0
+        },
+        "state": 0,
+        "objects": []
+    }
+]
