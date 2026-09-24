@@ -1,141 +1,226 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import "./App.css";
 
-import WorkplaceList from "./pages/WorkplaceList";
-import AddWorkplace from "./pages/AddWorkplace";
-import WorkplaceMain from "./pages/WorkplaceMain";
-import SafetyPolicy from "./pages/SafetyPolicy";
-import PatrolDetail from "./pages/PatrolDetail";
-import MapObjectSetup from "./pages/MapObjectSetup";
+import WorkplaceList
+  from "./pages/WorkplaceList";
 
-const API_URL = "http://127.0.0.1:8000";
+import AddWorkplace
+  from "./pages/AddWorkplace";
+
+import WorkplaceMain
+  from "./pages/WorkplaceMain";
+
+import SafetyPolicy
+  from "./pages/SafetyPolicy";
+
+import PatrolDetail
+  from "./pages/PatrolDetail";
+
+import MapZoneSetup
+  from "./pages/MapZoneSetup";
+
+import MapObjectSetup
+  from "./pages/MapObjectSetup";
+
+
+const API_BASE =
+  "http://127.0.0.1:8000";
+
 
 function App() {
-  const [page, setPage] = useState("list");
+  /*
+   * ==========================================
+   * Page
+   * ==========================================
+   *
+   * workplaceList
+   * addWorkplace
+   * main
+   * policy
+   * patrolDetail
+   * mapZoneSetup
+   * mapObjectSetup
+   */
 
-  const [workplaces, setWorkplaces] =
-    useState([]);
+  const [
+    page,
+    setPage,
+  ] = useState(
+    "workplaceList"
+  );
+
+
+  /*
+   * ==========================================
+   * Workplace
+   * ==========================================
+   */
+
+  const [
+    workplaces,
+    setWorkplaces,
+  ] = useState([]);
+
 
   const [
     selectedWorkplaceId,
     setSelectedWorkplaceId,
   ] = useState(null);
 
+
+  /*
+   * ==========================================
+   * Patrol
+   * ==========================================
+   */
+
   const [
     selectedPatrolId,
     setSelectedPatrolId,
   ] = useState(null);
 
-  const [loading, setLoading] =
-    useState(true);
+
+  /*
+   * ==========================================
+   * Loading
+   * ==========================================
+   */
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
+
+
+  /*
+   * ==========================================
+   * Selected Workplace
+   * ==========================================
+   */
 
   const selectedWorkplace =
     workplaces.find(
       (workplace) =>
-        workplace.id === selectedWorkplaceId
-    );
+        workplace.id ===
+        selectedWorkplaceId
+    ) || null;
 
-  const selectedPatrol =
-    selectedWorkplace?.patrols?.find(
-      (patrol) =>
-        patrol.id === selectedPatrolId
-    );
 
   /*
-   * ===============================
-   * 작업장 목록 조회
-   * ===============================
+   * ==========================================
+   * Initial Load
+   * ==========================================
    */
-
-  const loadWorkplaces = async () => {
-    try {
-      setLoading(true);
-
-      const response = await fetch(
-        `${API_URL}/workplaces`
-      );
-
-      if (!response.ok) {
-        throw new Error(
-          "작업장 목록 조회 실패"
-        );
-      }
-
-      const data =
-        await response.json();
-
-      setWorkplaces(data);
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        "Backend 서버에 연결할 수 없습니다."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
     loadWorkplaces();
   }, []);
 
+
   /*
-   * ===============================
-   * 작업장 생성
-   * ===============================
+   * ==========================================
+   * Load Workplaces
+   * ==========================================
    */
 
-  const addWorkplace = async (name) => {
-    try {
-      const response = await fetch(
-        `${API_URL}/workplaces`,
-        {
-          method: "POST",
+  const loadWorkplaces =
+    async () => {
+      try {
+        setLoading(true);
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+        const response =
+          await fetch(
+            `${API_BASE}/workplaces`
+          );
 
-          body: JSON.stringify({
-            name,
-          }),
+        if (!response.ok) {
+          throw new Error(
+            "작업장 목록을 불러오지 못했습니다."
+          );
         }
-      );
 
-      if (!response.ok) {
-        throw new Error(
-          "작업장 생성 실패"
+        const data =
+          await response.json();
+
+        setWorkplaces(
+          data
         );
+      } catch (error) {
+        console.error(
+          error
+        );
+
+        alert(
+          "Backend 서버 연결을 확인해주세요."
+        );
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const newWorkplace =
-        await response.json();
-
-      setWorkplaces((prev) => [
-        ...prev,
-        newWorkplace,
-      ]);
-
-      setSelectedWorkplaceId(
-        newWorkplace.id
-      );
-
-      setPage("main");
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        "작업장을 생성할 수 없습니다."
-      );
-    }
-  };
 
   /*
-   * ===============================
-   * 작업장 선택
-   * ===============================
+   * ==========================================
+   * Local Workplace Update
+   * ==========================================
+   */
+
+  const updateLocalWorkplace = (
+    workplaceId,
+    updates
+  ) => {
+    setWorkplaces(
+      (prev) =>
+        prev.map(
+          (workplace) =>
+            workplace.id ===
+            workplaceId
+              ? {
+                  ...workplace,
+                  ...updates,
+                }
+              : workplace
+        )
+    );
+  };
+
+
+  /*
+   * ==========================================
+   * Map Update
+   * ==========================================
+   */
+
+  const updateLocalMap = (
+    workplaceId,
+    mapData
+  ) => {
+    setWorkplaces(
+      (prev) =>
+        prev.map(
+          (workplace) =>
+            workplace.id ===
+            workplaceId
+              ? {
+                  ...workplace,
+
+                  map:
+                    mapData,
+                }
+              : workplace
+        )
+    );
+  };
+
+
+  /*
+   * ==========================================
+   * Open Workplace
+   * ==========================================
    */
 
   const openWorkplace = (
@@ -145,361 +230,608 @@ function App() {
       workplace.id
     );
 
+    setSelectedPatrolId(
+      null
+    );
+
     /*
-     * 만약 초기 사물 설정 도중
-     * 화면을 나갔다가 다시 들어온 경우
-     * 설정 화면으로 복귀
+     * 지도 제작 도중 화면을 나갔다가
+     * 다시 들어왔을 경우
+     * 현재 단계로 자동 복귀
      */
+
+    if (
+      workplace.map?.status ===
+      "zone_setup"
+    ) {
+      setPage(
+        "mapZoneSetup"
+      );
+
+      return;
+    }
 
     if (
       workplace.map?.status ===
       "object_setup"
     ) {
-      setPage("mapObjectSetup");
+      setPage(
+        "mapObjectSetup"
+      );
+
       return;
     }
 
-    setPage("main");
-  };
-
-  /*
-   * ===============================
-   * 로컬 작업장 갱신
-   * ===============================
-   */
-
-  const updateLocalWorkplace = (
-    workplaceId,
-    updater
-  ) => {
-    setWorkplaces((prev) =>
-      prev.map((workplace) => {
-        if (
-          workplace.id !== workplaceId
-        ) {
-          return workplace;
-        }
-
-        if (
-          typeof updater === "function"
-        ) {
-          return updater(workplace);
-        }
-
-        return {
-          ...workplace,
-          ...updater,
-        };
-      })
+    setPage(
+      "main"
     );
   };
 
+
   /*
-   * ===============================
-   * 지도 제작 시작
-   *
-   * empty
-   * ↓
-   * creating
-   * ↓
-   * Mock Scan
-   * ↓
-   * object_setup
-   * ↓
-   * MapObjectSetup
-   * ===============================
+   * ==========================================
+   * Back To Workplace List
+   * ==========================================
    */
 
-  const startMapping = async () => {
-    if (!selectedWorkplaceId) {
+  const backToWorkplaceList =
+    () => {
+      setSelectedWorkplaceId(
+        null
+      );
+
+      setSelectedPatrolId(
+        null
+      );
+
+      setPage(
+        "workplaceList"
+      );
+    };
+
+
+  /*
+   * ==========================================
+   * Add Workplace Page
+   * ==========================================
+   */
+
+  const openAddWorkplace =
+    () => {
+      setPage(
+        "addWorkplace"
+      );
+    };
+
+
+  /*
+   * ==========================================
+   * Create Workplace
+   * ==========================================
+   */
+
+  const createWorkplace =
+    async (name) => {
+      const trimmedName =
+        name.trim();
+
+      if (!trimmedName) {
+        alert(
+          "작업장 이름을 입력해주세요."
+        );
+
+        return;
+      }
+
+      try {
+        const response =
+          await fetch(
+            `${API_BASE}/workplaces`,
+            {
+              method:
+                "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body:
+                JSON.stringify({
+                  name:
+                    trimmedName,
+                }),
+            }
+          );
+
+        if (!response.ok) {
+          const errorData =
+            await response.json();
+
+          throw new Error(
+            errorData.detail ||
+              "작업장 생성에 실패했습니다."
+          );
+        }
+
+        const workplace =
+          await response.json();
+
+        setWorkplaces(
+          (prev) => [
+            ...prev,
+            workplace,
+          ]
+        );
+
+        setSelectedWorkplaceId(
+          workplace.id
+        );
+
+        setPage(
+          "main"
+        );
+      } catch (error) {
+        console.error(
+          error
+        );
+
+        alert(
+          error.message ||
+            "작업장을 생성할 수 없습니다."
+        );
+      }
+    };
+
+
+  /*
+   * ==========================================
+   * Start Mapping
+   * ==========================================
+   *
+   * 1. map/start
+   * 2. Mock Mapping
+   * 3. scan-complete
+   * 4. STEP 1 구역 설정
+   */
+
+  const startMapping =
+    async () => {
+      if (
+        !selectedWorkplace
+      ) {
+        return;
+      }
+
+      const workplaceId =
+        selectedWorkplace.id;
+
+      try {
+        /*
+         * --------------------------------------
+         * 1. Mapping 시작
+         * --------------------------------------
+         */
+
+        const startResponse =
+          await fetch(
+            `${API_BASE}/workplaces/${workplaceId}/map/start`,
+            {
+              method:
+                "POST",
+            }
+          );
+
+        if (
+          !startResponse.ok
+        ) {
+          const errorData =
+            await startResponse.json();
+
+          throw new Error(
+            errorData.detail ||
+              "지도 제작을 시작할 수 없습니다."
+          );
+        }
+
+        const startData =
+          await startResponse.json();
+
+        updateLocalMap(
+          workplaceId,
+          startData.map
+        );
+
+
+        /*
+         * --------------------------------------
+         * 현재는 Mock Mapping
+         *
+         * 추후 실제 구현:
+         * TurtleBot3
+         * → LiDAR
+         * → SLAM
+         * → Mapping 완료 신호
+         * --------------------------------------
+         */
+
+        await new Promise(
+          (resolve) =>
+            setTimeout(
+              resolve,
+              2500
+            )
+        );
+
+
+        /*
+         * --------------------------------------
+         * 2. Scan Complete
+         * --------------------------------------
+         */
+
+        const scanResponse =
+          await fetch(
+            `${API_BASE}/workplaces/${workplaceId}/map/scan-complete`,
+            {
+              method:
+                "POST",
+            }
+          );
+
+        if (
+          !scanResponse.ok
+        ) {
+          const errorData =
+            await scanResponse.json();
+
+          throw new Error(
+            errorData.detail ||
+              "지도 스캔 완료 처리에 실패했습니다."
+          );
+        }
+
+        const scanData =
+          await scanResponse.json();
+
+
+        /*
+         * Backend:
+         *
+         * creating
+         * →
+         * zone_setup
+         */
+
+        updateLocalMap(
+          workplaceId,
+          scanData.map
+        );
+
+
+        /*
+         * STEP 1
+         */
+
+        setPage(
+          "mapZoneSetup"
+        );
+      } catch (error) {
+        console.error(
+          error
+        );
+
+        alert(
+          error.message ||
+            "지도 제작 중 오류가 발생했습니다."
+        );
+      }
+    };
+
+
+  /*
+   * ==========================================
+   * STEP 1 Complete
+   * ==========================================
+   *
+   * MapZoneSetup
+   *
+   * zone_setup
+   * →
+   * object_setup
+   */
+
+  const completeZoneSetup = (
+    mapData
+  ) => {
+    if (
+      !selectedWorkplaceId
+    ) {
       return;
     }
 
-    try {
-      /*
-       * 1.
-       * Backend Mapping 시작
-       */
+    updateLocalMap(
+      selectedWorkplaceId,
+      mapData
+    );
 
-      const startResponse =
-        await fetch(
-          `${API_URL}/workplaces/${selectedWorkplaceId}/map/start`,
-          {
-            method: "POST",
-          }
-        );
+    /*
+     * STEP 2로 이동
+     */
 
-      if (!startResponse.ok) {
-        throw new Error(
-          "지도 제작 시작 실패"
-        );
-      }
-
-      const startData =
-        await startResponse.json();
-
-      /*
-       * 2.
-       * React를 creating 상태로 변경
-       */
-
-      updateLocalWorkplace(
-        selectedWorkplaceId,
-        (workplace) => ({
-          ...workplace,
-
-          map: startData.map,
-        })
-      );
-
-      /*
-       * =================================
-       * MOCK MAPPING
-       *
-       * 실제 시스템에서는
-       * TurtleBot3 + SLAM이
-       * 작업장을 스캔하는 시간
-       *
-       * 추후 ROS2 이벤트로 교체
-       * =================================
-       */
-
-      await new Promise((resolve) =>
-        setTimeout(resolve, 2500)
-      );
-
-      /*
-       * 3.
-       * 지도 스캔 완료
-       *
-       * 여기서 Backend가
-       * Mock 탐지 객체를 생성
-       */
-
-      const scanResponse =
-        await fetch(
-          `${API_URL}/workplaces/${selectedWorkplaceId}/map/scan-complete`,
-          {
-            method: "POST",
-          }
-        );
-
-      if (!scanResponse.ok) {
-        const errorData =
-          await scanResponse.json();
-
-        throw new Error(
-          errorData.detail ||
-            "지도 스캔 완료 처리 실패"
-        );
-      }
-
-      const scanData =
-        await scanResponse.json();
-
-      /*
-       * 4.
-       * 지도 + 탐지 객체
-       * React 상태에 저장
-       */
-
-      updateLocalWorkplace(
-        selectedWorkplaceId,
-        (workplace) => ({
-          ...workplace,
-
-          map: scanData.map,
-        })
-      );
-
-      /*
-       * 5.
-       * 초기 사물 설정 화면으로 이동
-       */
-
-      setPage("mapObjectSetup");
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        error.message ||
-          "지도 제작 중 오류가 발생했습니다."
-      );
-    }
+    setPage(
+      "mapObjectSetup"
+    );
   };
 
+
   /*
-   * ===============================
-   * 초기 지도 객체 설정 완료
+   * ==========================================
+   * STEP 2 Complete
+   * ==========================================
    *
-   * MapObjectSetup에서
-   * Backend 저장까지 완료된 후 호출
-   * ===============================
+   * MapObjectSetup
+   *
+   * object_setup
+   * →
+   * ready
    */
 
   const completeMapObjectSetup = (
     mapData
   ) => {
-    if (!selectedWorkplaceId) {
+    if (
+      !selectedWorkplaceId
+    ) {
       return;
     }
 
-    /*
-     * Backend에서 받은
-     * 최종 ready Map 저장
-     */
-
-    updateLocalWorkplace(
+    updateLocalMap(
       selectedWorkplaceId,
-      (workplace) => ({
-        ...workplace,
-
-        map: mapData,
-      })
+      mapData
     );
 
     /*
-     * 작업장 메인으로 복귀
+     * Baseline Semantic Map 완성
      */
 
-    setPage("main");
+    setPage(
+      "main"
+    );
   };
 
+
   /*
-   * ===============================
-   * 안전정책 저장
-   * ===============================
+   * ==========================================
+   * Safety Policy
+   * ==========================================
    */
 
-  const savePolicies = async (
-    newPolicies
-  ) => {
-    if (!selectedWorkplaceId) {
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${API_URL}/workplaces/${selectedWorkplaceId}/policies`,
-        {
-          method: "PUT",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-
-          body: JSON.stringify(
-            newPolicies
-          ),
-        }
+  const openPolicy =
+    () => {
+      setPage(
+        "policy"
       );
+    };
 
-      if (!response.ok) {
-        throw new Error(
-          "안전정책 저장 실패"
-        );
+
+  const savePolicies =
+    async (policies) => {
+      if (
+        !selectedWorkplace
+      ) {
+        return;
       }
 
-      const data =
-        await response.json();
+      try {
+        const response =
+          await fetch(
+            `${API_BASE}/workplaces/${selectedWorkplace.id}/policies`,
+            {
+              method:
+                "PUT",
 
-      updateLocalWorkplace(
-        selectedWorkplaceId,
-        (workplace) => ({
-          ...workplace,
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
 
-          policies: data.policies,
-        })
-      );
+              body:
+                JSON.stringify(
+                  policies
+                ),
+            }
+          );
 
-      setPage("main");
-    } catch (error) {
-      console.error(error);
+        if (!response.ok) {
+          const errorData =
+            await response.json();
 
-      alert(
-        "안전정책을 저장할 수 없습니다."
-      );
-    }
-  };
+          throw new Error(
+            errorData.detail ||
+              "안전정책 저장에 실패했습니다."
+          );
+        }
+
+        const savedPolicies =
+          await response.json();
+
+        updateLocalWorkplace(
+          selectedWorkplace.id,
+          {
+            policies:
+              savedPolicies,
+          }
+        );
+
+        setPage(
+          "main"
+        );
+      } catch (error) {
+        console.error(
+          error
+        );
+
+        alert(
+          error.message ||
+            "안전정책 저장 중 오류가 발생했습니다."
+        );
+      }
+    };
+
 
   /*
-   * ===============================
-   * 순찰 저장
-   * ===============================
+   * ==========================================
+   * Save Patrol
+   * ==========================================
    */
 
-  const savePatrol = (patrol) => {
-    if (!selectedWorkplaceId) {
+  const savePatrol = (
+    completedPatrol
+  ) => {
+    if (
+      !selectedWorkplace
+    ) {
       return;
     }
 
-    const today =
-      new Date().toLocaleDateString(
-        "ko-KR"
-      );
+    const workplaceId =
+      selectedWorkplace.id;
 
-    updateLocalWorkplace(
-      selectedWorkplaceId,
-      (workplace) => ({
-        ...workplace,
+    setWorkplaces(
+      (prev) =>
+        prev.map(
+          (workplace) => {
+            if (
+              workplace.id !==
+              workplaceId
+            ) {
+              return workplace;
+            }
 
-        lastPatrol: today,
+            const existingPatrols =
+              workplace.patrols ||
+              [];
 
-        patrols: [
-          patrol,
-          ...(workplace.patrols || []),
-        ],
-      })
+            const alreadyExists =
+              existingPatrols.some(
+                (patrol) =>
+                  patrol.id ===
+                  completedPatrol.id
+              );
+
+            const updatedPatrols =
+              alreadyExists
+                ? existingPatrols.map(
+                    (patrol) =>
+                      patrol.id ===
+                      completedPatrol.id
+                        ? completedPatrol
+                        : patrol
+                  )
+                : [
+                    completedPatrol,
+                    ...existingPatrols,
+                  ];
+
+            return {
+              ...workplace,
+
+              lastPatrol:
+                completedPatrol.completedAt,
+
+              patrols:
+                updatedPatrols,
+            };
+          }
+        )
     );
   };
 
+
   /*
-   * ===============================
-   * 순찰 상세보기
-   * ===============================
+   * ==========================================
+   * Open Patrol Detail
+   * ==========================================
    */
 
-  const openPatrolDetail = (
+  const openPatrol = (
     patrolId
   ) => {
     setSelectedPatrolId(
       patrolId
     );
 
-    setPage("patrolDetail");
+    setPage(
+      "patrolDetail"
+    );
   };
 
+
   /*
-   * ===============================
-   * Backend 초기 연결
-   * ===============================
+   * ==========================================
+   * Back To Main
+   * ==========================================
+   */
+
+  const backToMain =
+    () => {
+      setSelectedPatrolId(
+        null
+      );
+
+      setPage(
+        "main"
+      );
+    };
+
+
+  /*
+   * ==========================================
+   * Loading
+   * ==========================================
    */
 
   if (loading) {
     return (
-      <div className="app">
-        <div className="screen">
-          <div className="loading-screen">
-            Backend 연결 중...
-          </div>
+      <div className="screen">
+
+        <div
+          style={{
+            padding: "40px 24px",
+            textAlign: "center",
+          }}
+        >
+          작업장 정보를
+          불러오는 중...
         </div>
+
       </div>
     );
   }
 
+
+  /*
+   * ==========================================
+   * Render
+   * ==========================================
+   */
+
   return (
-    <div className="app">
+    <>
 
-      {/* ============================= */}
-      {/* 작업장 목록 */}
-      {/* ============================= */}
+      {/* ================================= */}
+      {/* WORKPLACE LIST */}
+      {/* ================================= */}
 
-      {page === "list" && (
+      {page ===
+        "workplaceList" && (
         <WorkplaceList
-          workplaces={workplaces}
-          onAdd={() =>
-            setPage("add")
+          workplaces={
+            workplaces
+          }
+          onAdd={
+            openAddWorkplace
           }
           onSelect={
             openWorkplace
@@ -507,24 +839,29 @@ function App() {
         />
       )}
 
-      {/* ============================= */}
-      {/* 작업장 추가 */}
-      {/* ============================= */}
 
-      {page === "add" && (
+      {/* ================================= */}
+      {/* ADD WORKPLACE */}
+      {/* ================================= */}
+
+      {page ===
+        "addWorkplace" && (
         <AddWorkplace
           onBack={() =>
-            setPage("list")
+            setPage(
+              "workplaceList"
+            )
           }
           onCreate={
-            addWorkplace
+            createWorkplace
           }
         />
       )}
 
-      {/* ============================= */}
-      {/* 작업장 메인 */}
-      {/* ============================= */}
+
+      {/* ================================= */}
+      {/* WORKPLACE MAIN */}
+      {/* ================================= */}
 
       {page === "main" &&
         selectedWorkplace && (
@@ -532,87 +869,107 @@ function App() {
             workplace={
               selectedWorkplace
             }
-
-            onBack={() =>
-              setPage("list")
+            onBack={
+              backToWorkplaceList
             }
-
-            onOpenPolicy={() =>
-              setPage("policy")
+            onOpenPolicy={
+              openPolicy
             }
-
             onStartMapping={
               startMapping
             }
-
             onSavePatrol={
               savePatrol
             }
-
             onOpenPatrol={
-              openPatrolDetail
+              openPatrol
             }
           />
         )}
 
-      {/* ============================= */}
-      {/* 초기 사물 설정 */}
-      {/* ============================= */}
 
-      {page === "mapObjectSetup" &&
+      {/* ================================= */}
+      {/* STEP 1 - ZONE SETUP */}
+      {/* ================================= */}
+
+      {page ===
+        "mapZoneSetup" &&
+        selectedWorkplace && (
+          <MapZoneSetup
+            workplace={
+              selectedWorkplace
+            }
+            onComplete={
+              completeZoneSetup
+            }
+          />
+        )}
+
+
+      {/* ================================= */}
+      {/* STEP 2 - OBJECT SETUP */}
+      {/* ================================= */}
+
+      {page ===
+        "mapObjectSetup" &&
         selectedWorkplace && (
           <MapObjectSetup
             workplace={
               selectedWorkplace
             }
-
             onComplete={
               completeMapObjectSetup
             }
           />
         )}
 
-      {/* ============================= */}
-      {/* 안전정책 */}
-      {/* ============================= */}
 
-      {page === "policy" &&
+      {/* ================================= */}
+      {/* SAFETY POLICY */}
+      {/* ================================= */}
+
+      {page ===
+        "policy" &&
         selectedWorkplace && (
           <SafetyPolicy
-            policies={
-              selectedWorkplace.policies
+            workplace={
+              selectedWorkplace
             }
-
-            onBack={() =>
-              setPage("main")
+            onBack={
+              backToMain
             }
-
             onSave={
               savePolicies
             }
           />
         )}
 
-      {/* ============================= */}
-      {/* 순찰 상세 */}
-      {/* ============================= */}
+
+      {/* ================================= */}
+      {/* PATROL DETAIL */}
+      {/* ================================= */}
 
       {page ===
         "patrolDetail" &&
-        selectedPatrol && (
+        selectedWorkplace &&
+        selectedPatrolId !==
+          null && (
           <PatrolDetail
-            patrol={
-              selectedPatrol
+            workplace={
+              selectedWorkplace
             }
-
-            onBack={() =>
-              setPage("main")
+            patrolId={
+              selectedPatrolId
+            }
+            onBack={
+              backToMain
             }
           />
         )}
 
-    </div>
+    </>
   );
 }
+
 
 export default App;

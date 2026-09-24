@@ -1946,3 +1946,1463 @@ button {
   max-width:
     calc(100vw - 48px);
 }
+
+/* =========================================================
+   STEP 1 - MAP ZONE SETUP
+========================================================= */
+
+.zone-setup-page {
+  width: 100%;
+  padding: 20px 18px 120px;
+  background: #f7f8fa;
+}
+
+
+/* =========================================================
+   ZONE SETUP GUIDE
+========================================================= */
+
+.zone-setup-guide {
+  margin-bottom: 16px;
+  padding: 15px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.zone-setup-guide strong {
+  display: block;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.zone-setup-guide p {
+  margin: 6px 0 0;
+  color: #7c8490;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   ZONE MAP
+========================================================= */
+
+.zone-map-section {
+  width: 100%;
+}
+
+.zone-drawing-map {
+  position: relative;
+  width: 100%;
+  height: 360px;
+  overflow: hidden;
+  border: 1px solid #d8dde4;
+  border-radius: 18px;
+  background: #fafbfc;
+  cursor: crosshair;
+  user-select: none;
+  touch-action: none;
+}
+
+.zone-drawing-map.selection-locked {
+  cursor: default;
+}
+
+
+/* =========================================================
+   ZONE MAP GRID
+========================================================= */
+
+.zone-map-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 18px;
+  background-image:
+    linear-gradient(
+      #e9edf1 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      #e9edf1 1px,
+      transparent 1px
+    );
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   MOCK MAP WALLS
+========================================================= */
+
+.zone-map-wall {
+  position: absolute;
+  z-index: 2;
+  background: #3c4450;
+  pointer-events: none;
+}
+
+.zone-map-wall-1 {
+  top: 88px;
+  left: 54px;
+  width: 7px;
+  height: 150px;
+}
+
+.zone-map-wall-2 {
+  top: 88px;
+  left: 54px;
+  width: 70px;
+  height: 7px;
+}
+
+.zone-map-wall-3 {
+  right: 50px;
+  bottom: 72px;
+  width: 120px;
+  height: 7px;
+}
+
+
+/* =========================================================
+   ZONE MAP HOME
+========================================================= */
+
+.zone-map-home {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  z-index: 20;
+
+  display: flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #202631;
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  pointer-events: none;
+}
+
+.zone-map-label {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  z-index: 20;
+
+  padding: 4px 7px;
+
+  border-radius: 6px;
+
+  background: rgba(
+    255,
+    255,
+    255,
+    0.88
+  );
+
+  color: #8c949f;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   CURRENT DRAG SELECTION
+========================================================= */
+
+.current-zone-selection {
+  position: absolute;
+  z-index: 50;
+
+  border: 2px dashed #111827;
+  border-radius: 6px;
+
+  background: rgba(
+    17,
+    24,
+    39,
+    0.12
+  );
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   PENDING ZONE
+========================================================= */
+
+.pending-map-zone {
+  position: absolute;
+  z-index: 45;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 20px;
+  min-height: 20px;
+
+  border: 2px dashed #111827;
+  border-radius: 7px;
+
+  background: rgba(
+    17,
+    24,
+    39,
+    0.12
+  );
+
+  color: #111827;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   SAVED MAP ZONE
+========================================================= */
+
+.saved-map-zone {
+  position: absolute;
+  z-index: 10;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 20px;
+  min-height: 20px;
+
+  padding: 4px;
+
+  overflow: hidden;
+
+  border: 1.5px solid transparent;
+  border-radius: 6px;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.saved-map-zone.selected {
+  z-index: 30;
+
+  border-color: #111827;
+
+  box-shadow:
+    0 0 0 2px
+    rgba(17, 24, 39, 0.12);
+}
+
+.saved-zone-name {
+  display: block;
+
+  max-width: 100%;
+
+  overflow: hidden;
+
+  color: #111827;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.saved-zone-type {
+  display: block;
+
+  max-width: 100%;
+
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color: rgba(
+    17,
+    24,
+    39,
+    0.68
+  );
+
+  font-size: 8px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   ZONE TYPE COLORS
+
+   각 공간 종류를 지도에서 구분하기 위한 색상
+========================================================= */
+
+/* 작업구역 */
+
+.zone-type-work_area {
+  background: rgba(
+    59,
+    130,
+    246,
+    0.20
+  );
+
+  border-color: rgba(
+    59,
+    130,
+    246,
+    0.72
+  );
+}
+
+
+/* 통로 */
+
+.zone-type-passage {
+  background: rgba(
+    16,
+    185,
+    129,
+    0.20
+  );
+
+  border-color: rgba(
+    16,
+    185,
+    129,
+    0.72
+  );
+}
+
+
+/* 창고 */
+
+.zone-type-storage {
+  background: rgba(
+    245,
+    158,
+    11,
+    0.22
+  );
+
+  border-color: rgba(
+    245,
+    158,
+    11,
+    0.76
+  );
+}
+
+
+/* 빈공간 */
+
+.zone-type-empty_area {
+  background: rgba(
+    148,
+    163,
+    184,
+    0.18
+  );
+
+  border-color: rgba(
+    100,
+    116,
+    139,
+    0.55
+  );
+}
+
+
+/* 위험구역 */
+
+.zone-type-hazard_area {
+  background: rgba(
+    239,
+    68,
+    68,
+    0.20
+  );
+
+  border-color: rgba(
+    220,
+    38,
+    38,
+    0.78
+  );
+}
+
+
+/* 접근제한구역 */
+
+.zone-type-restricted_area {
+  background: rgba(
+    126,
+    34,
+    206,
+    0.18
+  );
+
+  border-color: rgba(
+    126,
+    34,
+    206,
+    0.72
+  );
+}
+
+
+/* =========================================================
+   NEW ZONE PANEL
+========================================================= */
+
+.new-zone-panel {
+  margin-top: 16px;
+  padding: 16px;
+
+  border: 1px solid #dde2e8;
+  border-radius: 15px;
+
+  background: #ffffff;
+}
+
+.new-zone-panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  margin-bottom: 17px;
+}
+
+.new-zone-panel-header > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.new-zone-panel-header span {
+  color: #9299a3;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.new-zone-panel-header strong {
+  margin-top: 3px;
+
+  color: #111827;
+
+  font-size: 15px;
+}
+
+.new-zone-panel-header button {
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border-radius: 50%;
+
+  background: #f1f3f5;
+  color: #666666;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   ZONE FORM
+========================================================= */
+
+.zone-form-field {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.zone-form-field > span {
+  display: block;
+  margin-bottom: 6px;
+
+  color: #747c87;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.zone-form-field input,
+.zone-form-field select {
+  width: 100%;
+  min-height: 44px;
+
+  padding: 0 12px;
+
+  border: 1px solid #dce1e7;
+  border-radius: 9px;
+
+  outline: none;
+
+  background: #ffffff;
+  color: #111827;
+
+  font-size: 13px;
+}
+
+.zone-form-field input:focus,
+.zone-form-field select:focus {
+  border-color: #111827;
+}
+
+
+/* =========================================================
+   ZONE COORDINATES
+========================================================= */
+
+.zone-coordinate-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-top: 5px;
+  padding: 11px 12px;
+
+  border-radius: 9px;
+
+  background: #f7f8fa;
+}
+
+.zone-coordinate-info span {
+  color: #8a929c;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.zone-coordinate-info strong {
+  color: #111827;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  text-align: right;
+}
+
+
+/* =========================================================
+   NEW ZONE ACTIONS
+========================================================= */
+
+.new-zone-actions {
+  display: grid;
+
+  grid-template-columns:
+    0.8fr 1.2fr;
+
+  gap: 9px;
+
+  margin-top: 15px;
+}
+
+.zone-cancel-button,
+.zone-register-button {
+  min-height: 43px;
+
+  border-radius: 9px;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.zone-cancel-button {
+  border: 1px solid #dfe3e8;
+
+  background: #ffffff;
+
+  color: #6b7280;
+}
+
+.zone-register-button {
+  background: #111827;
+
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   REGISTERED ZONES
+========================================================= */
+
+.registered-zones {
+  margin-top: 17px;
+
+  padding: 16px;
+
+  border: 1px solid #e1e5ea;
+  border-radius: 15px;
+
+  background: #ffffff;
+}
+
+.registered-zones-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 12px;
+}
+
+.registered-zones-header strong {
+  font-size: 13px;
+}
+
+.registered-zones-header span {
+  display: flex;
+  min-width: 29px;
+  height: 23px;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 8px;
+
+  border-radius: 20px;
+
+  background: #f1f3f5;
+
+  color: #6b7280;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   EMPTY ZONE LIST
+========================================================= */
+
+.no-zones {
+  padding: 20px 10px;
+
+  border-radius: 10px;
+
+  background: #f8f9fa;
+
+  text-align: center;
+}
+
+.no-zones strong {
+  display: block;
+
+  color: #4b5563;
+
+  font-size: 11px;
+}
+
+.no-zones p {
+  margin: 6px 0 0;
+
+  color: #969da6;
+
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   ZONE LIST
+========================================================= */
+
+.zone-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.zone-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  min-height: 58px;
+
+  border-bottom: 1px solid #f0f2f4;
+}
+
+.zone-list-item:last-child {
+  border-bottom: none;
+}
+
+.zone-list-item.selected {
+  margin: 0 -7px;
+
+  padding: 0 7px;
+
+  border-radius: 9px;
+
+  background: #f7f8fa;
+}
+
+.zone-list-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 8px 0;
+
+  background: transparent;
+
+  cursor: pointer;
+
+  text-align: left;
+}
+
+.zone-list-main > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.zone-list-main strong {
+  overflow: hidden;
+
+  color: #111827;
+
+  font-size: 11px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.zone-list-main span:not(
+  .zone-type-dot
+) {
+  margin-top: 3px;
+
+  color: #8b929c;
+
+  font-size: 9px;
+}
+
+
+/* =========================================================
+   ZONE TYPE DOT
+========================================================= */
+
+.zone-type-dot {
+  display: block;
+  flex-shrink: 0;
+
+  width: 12px;
+  height: 12px;
+
+  padding: 0;
+
+  border-width: 2px;
+  border-style: solid;
+  border-radius: 4px;
+}
+
+
+/* =========================================================
+   DELETE ZONE
+========================================================= */
+
+.zone-delete-button {
+  flex-shrink: 0;
+
+  padding: 7px 9px;
+
+  border-radius: 7px;
+
+  background: #f3f4f6;
+
+  color: #777f89;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.zone-delete-button:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+
+/* =========================================================
+   STEP 1 BOTTOM
+========================================================= */
+
+.zone-setup-bottom {
+  position: fixed;
+
+  z-index: 500;
+
+  left: 50%;
+  bottom: 0;
+
+  width: 100%;
+  max-width: 480px;
+
+  padding: 13px 18px 22px;
+
+  transform: translateX(-50%);
+
+  border-top: 1px solid #eceff2;
+
+  background: rgba(
+    255,
+    255,
+    255,
+    0.97
+  );
+}
+
+.zone-next-button {
+  width: 100%;
+  min-height: 52px;
+
+  border-radius: 12px;
+
+  background: #111827;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.zone-next-button:disabled {
+  background: #d5d9df;
+
+  color: #8d949d;
+
+  cursor: default;
+}
+
+
+/* =========================================================
+   MOBILE ZONE SETUP
+========================================================= */
+
+@media (
+  max-width: 380px
+) {
+  .zone-drawing-map {
+    height: 330px;
+  }
+
+  .zone-setup-page {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .saved-zone-name {
+    font-size: 9px;
+  }
+
+  .saved-zone-type {
+    font-size: 7px;
+  }
+}
+
+/* =========================================================
+   STEP 2 - SEMANTIC ZONES
+========================================================= */
+
+.setup-semantic-zone {
+  position: absolute;
+
+  z-index: 5;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 20px;
+  min-height: 20px;
+
+  padding: 5px;
+
+  overflow: hidden;
+
+  border-width: 1.5px;
+  border-style: solid;
+  border-radius: 7px;
+
+  pointer-events: none;
+}
+
+.setup-semantic-zone-name {
+  display: block;
+
+  max-width: 100%;
+
+  overflow: hidden;
+
+  color: #111827;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.setup-semantic-zone-type {
+  display: block;
+
+  max-width: 100%;
+
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color: rgba(
+    17,
+    24,
+    39,
+    0.65
+  );
+
+  font-size: 8px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+/*
+ * 사물은 Semantic Zone보다 위
+ */
+
+.setup-object-wrapper {
+  z-index: 30;
+}
+
+/*
+ * 벽도 구역 위에서 보이도록
+ */
+
+.setup-wall {
+  z-index: 10;
+}
+
+/*
+ * Home
+ */
+
+.setup-home-marker {
+  z-index: 20;
+}
+
+/* =========================================================
+   MAIN MAP - SEMANTIC ZONES
+========================================================= */
+
+.main-semantic-zone {
+  position: absolute;
+
+  z-index: 5;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 20px;
+  min-height: 20px;
+
+  padding: 4px;
+
+  overflow: hidden;
+
+  border-width: 1.5px;
+  border-style: solid;
+  border-radius: 6px;
+
+  pointer-events: none;
+}
+
+.main-semantic-zone-name {
+  display: block;
+
+  max-width: 100%;
+
+  overflow: hidden;
+
+  color: #111827;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.main-semantic-zone-type {
+  display: block;
+
+  max-width: 100%;
+
+  margin-top: 2px;
+
+  overflow: hidden;
+
+  color: rgba(
+    17,
+    24,
+    39,
+    0.65
+  );
+
+  font-size: 7px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+/*
+ * 벽은 Semantic Zone보다 위
+ */
+
+.map-placeholder .wall {
+  z-index: 10;
+}
+
+/*
+ * Home과 Robot
+ */
+
+.map-placeholder .home-marker,
+.map-placeholder .robot-marker {
+  z-index: 20;
+}
+
+/*
+ * Baseline 사물은 가장 위
+ */
+
+.map-placeholder
+.baseline-object-wrapper {
+  z-index: 30;
+}
+
+/* =========================================================
+   UNIFIED MOCK MAP COORDINATE SYSTEM
+
+   STEP 1 / STEP 2 / MAIN MAP
+   모두 동일한 6m × 6m 좌표계를 사용합니다.
+
+   x = 0 ~ 6m
+   y = 0 ~ 6m
+
+   화면 변환:
+   left = x / 6 * 100%
+   top  = (1 - y / 6) * 100%
+========================================================= */
+
+
+/* =========================================================
+   1. ALL MAPS - SAME SIZE
+========================================================= */
+
+.zone-drawing-map,
+.setup-object-map,
+.map-placeholder {
+  position: relative;
+
+  width: 100%;
+  height: 360px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #d8dde4;
+  border-radius: 18px;
+
+  background-color: #fafbfc;
+}
+
+
+/* =========================================================
+   2. SAME GRID
+========================================================= */
+
+.zone-map-grid,
+.setup-grid {
+  position: absolute;
+
+  inset: 0;
+
+  border-radius: 18px;
+
+  background-image:
+    linear-gradient(
+      #e9edf1 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      #e9edf1 1px,
+      transparent 1px
+    );
+
+  background-size:
+    28px 28px;
+}
+
+
+/*
+ * 메인 지도도 같은 Grid 사용
+ */
+
+.map-placeholder {
+  background-image:
+    linear-gradient(
+      #e9edf1 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      #e9edf1 1px,
+      transparent 1px
+    );
+
+  background-size:
+    28px 28px;
+}
+
+
+/* =========================================================
+   3. SAME WALL POSITION
+========================================================= */
+
+/*
+ * WALL 1
+ *
+ * 세 화면 모두:
+ *
+ * top: 88px
+ * left: 54px
+ * width: 7px
+ * height: 150px
+ */
+
+.zone-map-wall-1,
+.setup-wall-1,
+.wall-1 {
+  top: 88px;
+  right: auto;
+  bottom: auto;
+  left: 54px;
+
+  width: 7px;
+  height: 150px;
+}
+
+
+/*
+ * WALL 2
+ *
+ * 세 화면 모두:
+ *
+ * top: 88px
+ * left: 54px
+ * width: 70px
+ * height: 7px
+ */
+
+.zone-map-wall-2,
+.setup-wall-2,
+.wall-2 {
+  top: 88px;
+  right: auto;
+  bottom: auto;
+  left: 54px;
+
+  width: 70px;
+  height: 7px;
+}
+
+
+/*
+ * WALL 3
+ *
+ * 세 화면 모두:
+ *
+ * right: 50px
+ * bottom: 72px
+ * width: 120px
+ * height: 7px
+ */
+
+.zone-map-wall-3,
+.setup-wall-3,
+.wall-3 {
+  top: auto;
+  right: 50px;
+  bottom: 72px;
+  left: auto;
+
+  width: 120px;
+  height: 7px;
+}
+
+
+/* =========================================================
+   4. WALL STYLE
+========================================================= */
+
+.zone-map-wall,
+.setup-wall,
+.wall {
+  position: absolute;
+
+  z-index: 10;
+
+  background: #3c4450;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   5. SAME HOME POSITION
+========================================================= */
+
+.zone-map-home,
+.setup-home-marker,
+.home-marker {
+  position: absolute;
+
+  top: auto;
+  right: auto;
+  bottom: 18px;
+  left: 18px;
+
+  display: flex;
+
+  width: 38px;
+  height: 38px;
+
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #202631;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   6. LAYER ORDER
+========================================================= */
+
+/*
+ * Semantic Zone
+ */
+
+.saved-map-zone,
+.setup-semantic-zone,
+.main-semantic-zone {
+  z-index: 5;
+}
+
+
+/*
+ * Wall
+ */
+
+.zone-map-wall,
+.setup-wall,
+.map-placeholder .wall {
+  z-index: 10;
+}
+
+
+/*
+ * Home
+ */
+
+.zone-map-home,
+.setup-home-marker,
+.map-placeholder .home-marker {
+  z-index: 20;
+}
+
+
+/*
+ * Object
+ */
+
+.setup-object-wrapper,
+.map-placeholder
+.baseline-object-wrapper {
+  z-index: 30;
+}
+
+
+/* =========================================================
+   7. MAIN MAP CONTAINER
+========================================================= */
+
+.map-container {
+  width: 100%;
+
+  padding-top: 45px;
+}
+
+
+/*
+ * 말풍선 때문에 메인 지도는
+ * overflow visible 유지
+ */
+
+.map-placeholder {
+  overflow: visible;
+}
+
+
+/*
+ * STEP 1은 Drag 영역을 벗어나면 안 됨
+ */
+
+.zone-drawing-map {
+  overflow: hidden;
+}
+
+
+/*
+ * STEP 2는 Popover 표시 때문에 visible
+ */
+
+.setup-object-map {
+  overflow: visible;
+}
+
+
+/* =========================================================
+   8. MAP LABEL
+========================================================= */
+
+.map-label,
+.setup-map-label,
+.zone-map-label {
+  position: absolute;
+
+  right: 14px;
+  bottom: 8px;
+  left: auto;
+
+  z-index: 40;
+
+  padding: 4px 7px;
+
+  border-radius: 6px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.88
+    );
+
+  color: #8c949f;
+
+  font-size: 9px;
+  font-weight: 600;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   9. ROBOT MARKER
+========================================================= */
+
+.robot-marker {
+  position: absolute;
+
+  z-index: 25;
+
+  top: 50%;
+  left: 50%;
+
+  font-size: 26px;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+}
+
+
+/* =========================================================
+   10. MOBILE
+
+   모바일에서도 세 지도 높이를
+   서로 다르게 만들지 않습니다.
+========================================================= */
+
+@media (
+  max-width: 380px
+) {
+  .zone-drawing-map,
+  .setup-object-map,
+  .map-placeholder {
+    height: 330px;
+  }
+}

@@ -6,6 +6,35 @@ import {
 const API_URL =
   "http://127.0.0.1:8000";
 
+const MAP_SIZE = 6;
+
+const ZONE_TYPES = [
+  {
+    value: "work_area",
+    label: "작업구역",
+  },
+  {
+    value: "passage",
+    label: "통로",
+  },
+  {
+    value: "storage",
+    label: "창고",
+  },
+  {
+    value: "empty_area",
+    label: "빈공간",
+  },
+  {
+    value: "hazard_area",
+    label: "위험구역",
+  },
+  {
+    value: "restricted_area",
+    label: "접근제한구역",
+  },
+];
+
 function WorkplaceMain({
   workplace,
   onBack,
@@ -52,12 +81,16 @@ function WorkplaceMain({
     workplace.map?.objects ||
     [];
 
+  const mapZones =
+    workplace.map?.zones ||
+    [];
+
   const selectedMapObject =
     mapObjects.find(
       (object) =>
         object.id ===
         selectedMapObjectId
-    );
+    ) || null;
 
   /*
    * ==========================================
@@ -78,7 +111,8 @@ function WorkplaceMain({
     const timer =
       setInterval(() => {
         setElapsedTime(
-          (prev) => prev + 1
+          (prev) =>
+            prev + 1
         );
       }, 1000);
 
@@ -119,6 +153,10 @@ function WorkplaceMain({
   const formatDate = (
     dateString
   ) => {
+    if (!dateString) {
+      return "-";
+    }
+
     return new Date(
       dateString
     ).toLocaleString(
@@ -128,7 +166,7 @@ function WorkplaceMain({
 
   /*
    * ==========================================
-   * Map Object
+   * Object
    * ==========================================
    */
 
@@ -169,53 +207,200 @@ function WorkplaceMain({
   };
 
   /*
-   * Mock Map:
-   * 6m × 6m
+   * ==========================================
+   * Semantic Zone
+   * ==========================================
+   */
+
+  const getZoneTypeName = (
+    type
+  ) => {
+    const found =
+      ZONE_TYPES.find(
+        (zoneType) =>
+          zoneType.value ===
+          type
+      );
+
+    return found
+      ? found.label
+      : "미지정";
+  };
+
+  const getZoneClass = (
+    type
+  ) => {
+    return (
+      `zone-type-${type}`
+    );
+  };
+
+  /*
+   * ==========================================
+   * Zone Bounds → 화면 위치
+   * ==========================================
+   */
+
+  const convertZoneBounds = (
+    bounds
+  ) => {
+    if (!bounds) {
+      return {};
+    }
+
+    const minX =
+      Math.min(
+        bounds.x1,
+        bounds.x2
+      );
+
+    const maxX =
+      Math.max(
+        bounds.x1,
+        bounds.x2
+      );
+
+    const minY =
+      Math.min(
+        bounds.y1,
+        bounds.y2
+      );
+
+    const maxY =
+      Math.max(
+        bounds.y1,
+        bounds.y2
+      );
+
+    return {
+      left:
+        `${(
+          minX /
+          MAP_SIZE
+        ) * 100}%`,
+
+      top:
+        `${(
+          1 -
+          maxY /
+            MAP_SIZE
+        ) * 100}%`,
+
+      width:
+        `${(
+          (maxX -
+            minX) /
+          MAP_SIZE
+        ) * 100}%`,
+
+      height:
+        `${(
+          (maxY -
+            minY) /
+          MAP_SIZE
+        ) * 100}%`,
+    };
+  };
+
+  /*
+   * ==========================================
+   * Object Position → 화면 위치
+   * ==========================================
    */
 
   const convertMapPosition = (
     position
   ) => {
-    const MAP_SIZE = 6;
-
     const x =
       position?.x ?? 0;
-
+  
     const y =
       position?.y ?? 0;
-
-    const left =
-      Math.max(
-        8,
-        Math.min(
-          92,
-          (x / MAP_SIZE) *
-            100
-        )
-      ) + "%";
-
-    const top =
-      Math.max(
-        10,
-        Math.min(
-          90,
-          100 -
-            (y /
-              MAP_SIZE) *
-              100
-        )
-      ) + "%";
-
+  
     return {
-      left,
-      top,
+      left:
+        `${(
+          x /
+          MAP_SIZE
+        ) * 100}%`,
+  
+      top:
+        `${(
+          1 -
+          y /
+            MAP_SIZE
+        ) * 100}%`,
     };
   };
 
   /*
-   * SLAM Y 값이 크면
-   * 화면 상단에 위치하므로
-   * 말풍선을 아래쪽으로 표시
+   * ==========================================
+   * 좌표 → Semantic Zone
+   * ==========================================
+   */
+
+  const findZoneByPosition = (
+    position
+  ) => {
+    if (!position) {
+      return null;
+    }
+
+    const x =
+      position.x;
+
+    const y =
+      position.y;
+
+    return (
+      mapZones.find(
+        (zone) => {
+          const bounds =
+            zone.bounds;
+
+          if (!bounds) {
+            return false;
+          }
+
+          const minX =
+            Math.min(
+              bounds.x1,
+              bounds.x2
+            );
+
+          const maxX =
+            Math.max(
+              bounds.x1,
+              bounds.x2
+            );
+
+          const minY =
+            Math.min(
+              bounds.y1,
+              bounds.y2
+            );
+
+          const maxY =
+            Math.max(
+              bounds.y1,
+              bounds.y2
+            );
+
+          return (
+            x >= minX &&
+            x <= maxX &&
+            y >= minY &&
+            y <= maxY
+          );
+        }
+      ) || null
+    );
+  };
+
+  /*
+   * ==========================================
+   * Popover Direction
+   * ==========================================
    */
 
   const shouldOpenBelow = (
@@ -297,9 +482,7 @@ function WorkplaceMain({
 
         setElapsedTime(0);
 
-        setCurrentEvents(
-          []
-        );
+        setCurrentEvents([]);
 
         setPatrolStatus(
           "running"
@@ -314,15 +497,19 @@ function WorkplaceMain({
             "순찰을 시작할 수 없습니다."
         );
       } finally {
-        setProcessing(
-          false
-        );
+        setProcessing(false);
       }
     };
 
   /*
    * ==========================================
    * Demo Event
+   * ==========================================
+   *
+   * A/B/C를 더 이상 사용하지 않습니다.
+   *
+   * Backend가 x, y 좌표를 보고
+   * 해당 Semantic Zone을 자동 판단합니다.
    * ==========================================
    */
 
@@ -357,7 +544,9 @@ function WorkplaceMain({
             objectName:
               "물병",
 
-            zone: "A",
+            zone: null,
+
+            zoneId: null,
 
             x: 2.4,
 
@@ -374,7 +563,9 @@ function WorkplaceMain({
             objectName:
               "상자",
 
-            zone: "A",
+            zone: null,
+
+            zoneId: null,
 
             x: 3.1,
 
@@ -433,9 +624,7 @@ function WorkplaceMain({
             "변화 이벤트 처리 중 오류가 발생했습니다."
         );
       } finally {
-        setProcessing(
-          false
-        );
+        setProcessing(false);
       }
     };
 
@@ -486,9 +675,15 @@ function WorkplaceMain({
           "returning"
         );
 
-        setProcessing(
-          false
-        );
+        setProcessing(false);
+
+        /*
+         * 현재는 Mock 복귀
+         *
+         * 추후 Nav2가 실제 Home Pose에
+         * 도착했다는 신호를 받으면
+         * completePatrol() 호출
+         */
 
         setTimeout(() => {
           completePatrol(
@@ -500,9 +695,7 @@ function WorkplaceMain({
           error
         );
 
-        setProcessing(
-          false
-        );
+        setProcessing(false);
 
         alert(
           error.message ||
@@ -522,9 +715,7 @@ function WorkplaceMain({
       patrolId
     ) => {
       try {
-        setProcessing(
-          true
-        );
+        setProcessing(true);
 
         const response =
           await fetch(
@@ -558,9 +749,7 @@ function WorkplaceMain({
 
         setElapsedTime(0);
 
-        setCurrentEvents(
-          []
-        );
+        setCurrentEvents([]);
 
         setCurrentPatrolId(
           null
@@ -575,9 +764,7 @@ function WorkplaceMain({
             "순찰 완료 처리 중 오류가 발생했습니다."
         );
       } finally {
-        setProcessing(
-          false
-        );
+        setProcessing(false);
       }
     };
 
@@ -591,7 +778,9 @@ function WorkplaceMain({
   return (
     <div className="screen">
 
+      {/* ================================= */}
       {/* HEADER */}
+      {/* ================================= */}
 
       <header className="page-header">
 
@@ -610,9 +799,9 @@ function WorkplaceMain({
 
       <main className="main-dashboard">
 
-        {/* ===================== */}
+        {/* ================================= */}
         {/* MAP */}
-        {/* ===================== */}
+        {/* ================================= */}
 
         <section className="map-section">
 
@@ -625,7 +814,9 @@ function WorkplaceMain({
             안전정책
           </button>
 
+          {/* ============================= */}
           {/* EMPTY */}
+          {/* ============================= */}
 
           {mapStatus ===
             "empty" && (
@@ -658,7 +849,9 @@ function WorkplaceMain({
             </div>
           )}
 
+          {/* ============================= */}
           {/* CREATING */}
+          {/* ============================= */}
 
           {mapStatus ===
             "creating" && (
@@ -672,9 +865,9 @@ function WorkplaceMain({
               </strong>
 
               <p>
-                현재는 하드웨어
-                없이 Mock Mapping을
-                실행하고 있습니다.
+                현재는 하드웨어 없이
+                Mock Mapping을 실행하고
+                있습니다.
               </p>
 
               <span className="status-badge">
@@ -684,7 +877,9 @@ function WorkplaceMain({
             </div>
           )}
 
+          {/* ============================= */}
           {/* READY */}
+          {/* ============================= */}
 
           {mapStatus ===
             "ready" && (
@@ -699,21 +894,45 @@ function WorkplaceMain({
                 }
               >
 
-                {/* ZONES */}
+                {/* ========================= */}
+                {/* SEMANTIC ZONES */}
+                {/* ========================= */}
 
-                <span className="zone zone-a">
-                  A
-                </span>
+                {mapZones.map(
+                  (zone) => (
+                    <div
+                      key={
+                        zone.id
+                      }
+                      className={
+                        `main-semantic-zone ${getZoneClass(
+                          zone.type
+                        )}`
+                      }
+                      style={
+                        convertZoneBounds(
+                          zone.bounds
+                        )
+                      }
+                    >
 
-                <span className="zone zone-b">
-                  B
-                </span>
+                      <span className="main-semantic-zone-name">
+                        {zone.name}
+                      </span>
 
-                <span className="zone zone-c">
-                  C
-                </span>
+                      <span className="main-semantic-zone-type">
+                        {getZoneTypeName(
+                          zone.type
+                        )}
+                      </span>
 
+                    </div>
+                  )
+                )}
+
+                {/* ========================= */}
                 {/* WALLS */}
+                {/* ========================= */}
 
                 <div className="wall wall-1" />
 
@@ -721,9 +940,9 @@ function WorkplaceMain({
 
                 <div className="wall wall-3" />
 
-                {/* ================= */}
+                {/* ========================= */}
                 {/* BASELINE OBJECTS */}
-                {/* ================= */}
+                {/* ========================= */}
 
                 {mapObjects.map(
                   (object) => {
@@ -741,6 +960,11 @@ function WorkplaceMain({
                         object
                       );
 
+                    const objectZone =
+                      findZoneByPosition(
+                        object.position
+                      );
+
                     return (
                       <div
                         key={
@@ -756,6 +980,8 @@ function WorkplaceMain({
                           event.stopPropagation()
                         }
                       >
+
+                        {/* MARKER */}
 
                         <button
                           type="button"
@@ -787,128 +1013,160 @@ function WorkplaceMain({
 
                         </button>
 
+                        {/* ================= */}
                         {/* POPOVER */}
+                        {/* ================= */}
 
                         {isSelected &&
                           selectedMapObject && (
-                          <div
-                            className={
-                              openBelow
-                                ? "baseline-object-popover baseline-popover-below"
-                                : "baseline-object-popover baseline-popover-above"
-                            }
-                          >
+                            <div
+                              className={
+                                openBelow
+                                  ? "baseline-object-popover baseline-popover-below"
+                                  : "baseline-object-popover baseline-popover-above"
+                              }
+                            >
 
-                            <div className="baseline-popover-arrow" />
+                              <div className="baseline-popover-arrow" />
 
-                            <div className="baseline-popover-header">
+                              <div className="baseline-popover-header">
 
-                              <strong>
-                                {
-                                  selectedMapObject.name
-                                }
-                              </strong>
+                                <strong>
+                                  {
+                                    selectedMapObject.name
+                                  }
+                                </strong>
 
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setSelectedMapObjectId(
-                                    null
-                                  )
-                                }
-                              >
-                                ×
-                              </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setSelectedMapObjectId(
+                                      null
+                                    )
+                                  }
+                                >
+                                  ×
+                                </button>
+
+                              </div>
+
+                              {/* 종류 */}
+
+                              <div className="baseline-info-row">
+
+                                <span>
+                                  종류
+                                </span>
+
+                                <strong>
+                                  {getObjectTypeName(
+                                    selectedMapObject.type
+                                  )}
+                                </strong>
+
+                              </div>
+
+                              {/* 탐지 */}
+
+                              <div className="baseline-info-row">
+
+                                <span>
+                                  탐지
+                                </span>
+
+                                <strong>
+                                  {
+                                    selectedMapObject.detectedClass
+                                  }
+                                </strong>
+
+                              </div>
+
+                              {/* 구역 */}
+
+                              <div className="baseline-info-row">
+
+                                <span>
+                                  구역
+                                </span>
+
+                                <strong>
+                                  {objectZone
+                                    ? objectZone.name
+                                    : "구역 외부"}
+                                </strong>
+
+                              </div>
+
+                              {/* 공간 유형 */}
+
+                              <div className="baseline-info-row">
+
+                                <span>
+                                  공간 유형
+                                </span>
+
+                                <strong>
+                                  {objectZone
+                                    ? getZoneTypeName(
+                                        objectZone.type
+                                      )
+                                    : "미지정"}
+                                </strong>
+
+                              </div>
+
+                              {/* 위치 */}
+
+                              <div className="baseline-info-row">
+
+                                <span>
+                                  위치
+                                </span>
+
+                                <strong>
+                                  X{" "}
+                                  {
+                                    selectedMapObject
+                                      .position
+                                      .x
+                                  }
+                                  {" / "}
+                                  Y{" "}
+                                  {
+                                    selectedMapObject
+                                      .position
+                                      .y
+                                  }
+                                </strong>
+
+                              </div>
+
+                              {/* 상태 */}
+
+                              <div className="baseline-info-row">
+
+                                <span>
+                                  상태
+                                </span>
+
+                                <strong>
+                                  기준 사물
+                                </strong>
+
+                              </div>
 
                             </div>
-
-                            <div className="baseline-info-row">
-
-                              <span>
-                                종류
-                              </span>
-
-                              <strong>
-                                {getObjectTypeName(
-                                  selectedMapObject.type
-                                )}
-                              </strong>
-
-                            </div>
-
-                            <div className="baseline-info-row">
-
-                              <span>
-                                탐지
-                              </span>
-
-                              <strong>
-                                {
-                                  selectedMapObject.detectedClass
-                                }
-                              </strong>
-
-                            </div>
-
-                            <div className="baseline-info-row">
-
-                              <span>
-                                구역
-                              </span>
-
-                              <strong>
-                                {
-                                  selectedMapObject.zone
-                                }
-                              </strong>
-
-                            </div>
-
-                            <div className="baseline-info-row">
-
-                              <span>
-                                위치
-                              </span>
-
-                              <strong>
-                                X{" "}
-                                {
-                                  selectedMapObject
-                                    .position
-                                    .x
-                                }
-                                {" / "}
-                                Y{" "}
-                                {
-                                  selectedMapObject
-                                    .position
-                                    .y
-                                }
-                              </strong>
-
-                            </div>
-
-                            <div className="baseline-info-row">
-
-                              <span>
-                                상태
-                              </span>
-
-                              <strong>
-                                기준 사물
-                              </strong>
-
-                            </div>
-
-                          </div>
-                        )}
+                          )}
 
                       </div>
                     );
                   }
                 )}
 
+                {/* ========================= */}
                 {/* ROBOT */}
+                {/* ========================= */}
 
                 <span
                   className={
@@ -921,14 +1179,16 @@ function WorkplaceMain({
                   ●
                 </span>
 
+                {/* ========================= */}
                 {/* HOME */}
+                {/* ========================= */}
 
                 <span className="home-marker">
                   H
                 </span>
 
                 <span className="map-label">
-                  작업장 지도
+                  작업장 Semantic Map
                 </span>
 
                 {patrolStatus ===
@@ -945,9 +1205,9 @@ function WorkplaceMain({
 
         </section>
 
-        {/* ===================== */}
+        {/* ================================= */}
         {/* DASHBOARD */}
-        {/* ===================== */}
+        {/* ================================= */}
 
         <section className="dashboard-section">
 
@@ -955,7 +1215,9 @@ function WorkplaceMain({
             Dashboard
           </h3>
 
+          {/* ============================= */}
           {/* RUNNING */}
+          {/* ============================= */}
 
           {patrolStatus ===
             "running" && (
@@ -1024,16 +1286,26 @@ function WorkplaceMain({
                   </span>
 
                   <strong>
-                    {
-                      currentEvents[0]
-                        .zone
-                    }
-                    구역 ·{" "}
+                    {currentEvents[0]
+                      .zone ||
+                      "구역 외부"}
+                    {" · "}
                     {
                       currentEvents[0]
                         .objectName
                     }
                   </strong>
+
+                  {currentEvents[0]
+                    .zoneType && (
+                    <span>
+                      공간 유형:{" "}
+                      {getZoneTypeName(
+                        currentEvents[0]
+                          .zoneType
+                      )}
+                    </span>
+                  )}
 
                   <div
                     className={
@@ -1088,7 +1360,9 @@ function WorkplaceMain({
             </div>
           )}
 
+          {/* ============================= */}
           {/* RETURNING */}
+          {/* ============================= */}
 
           {patrolStatus ===
             "returning" && (
@@ -1135,7 +1409,9 @@ function WorkplaceMain({
             </div>
           )}
 
+          {/* ============================= */}
           {/* HISTORY */}
+          {/* ============================= */}
 
           {workplace.patrols
             ?.length > 0 && (
@@ -1228,9 +1504,9 @@ function WorkplaceMain({
 
       </main>
 
-      {/* ===================== */}
+      {/* ================================= */}
       {/* BOTTOM */}
-      {/* ===================== */}
+      {/* ================================= */}
 
       <div className="bottom-area">
 
