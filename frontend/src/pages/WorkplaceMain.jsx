@@ -1,6 +1,10 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL =
+  "http://127.0.0.1:8000";
 
 function WorkplaceMain({
   workplace,
@@ -10,43 +14,73 @@ function WorkplaceMain({
   onSavePatrol,
   onOpenPatrol,
 }) {
-  const [patrolStatus, setPatrolStatus] =
-    useState("idle");
+  const [
+    patrolStatus,
+    setPatrolStatus,
+  ] = useState("idle");
 
-  const [elapsedTime, setElapsedTime] =
-    useState(0);
+  const [
+    elapsedTime,
+    setElapsedTime,
+  ] = useState(0);
 
-  const [currentEvents, setCurrentEvents] =
-    useState([]);
+  const [
+    currentEvents,
+    setCurrentEvents,
+  ] = useState([]);
 
-  const [currentPatrolId, setCurrentPatrolId] =
-    useState(null);
+  const [
+    currentPatrolId,
+    setCurrentPatrolId,
+  ] = useState(null);
 
-  const [processing, setProcessing] =
-    useState(false);
+  const [
+    processing,
+    setProcessing,
+  ] = useState(false);
+
+  const [
+    selectedMapObjectId,
+    setSelectedMapObjectId,
+  ] = useState(null);
 
   const mapStatus =
-    workplace.map?.status || "empty";
+    workplace.map?.status ||
+    "empty";
+
+  const mapObjects =
+    workplace.map?.objects ||
+    [];
+
+  const selectedMapObject =
+    mapObjects.find(
+      (object) =>
+        object.id ===
+        selectedMapObjectId
+    );
 
   /*
    * ==========================================
-   * 순찰 타이머
+   * Timer
    * ==========================================
    */
 
   useEffect(() => {
     if (
-      patrolStatus !== "running" &&
-      patrolStatus !== "returning"
+      patrolStatus !==
+        "running" &&
+      patrolStatus !==
+        "returning"
     ) {
       return;
     }
 
-    const timer = setInterval(() => {
-      setElapsedTime(
-        (prev) => prev + 1
-      );
-    }, 1000);
+    const timer =
+      setInterval(() => {
+        setElapsedTime(
+          (prev) => prev + 1
+        );
+      }, 1000);
 
     return () =>
       clearInterval(timer);
@@ -54,437 +88,498 @@ function WorkplaceMain({
 
   /*
    * ==========================================
-   * 시간 표시
+   * Formatting
    * ==========================================
    */
 
-  const formatTime = (seconds) => {
-    const minutes = Math.floor(
-      seconds / 60
-    );
+  const formatTime = (
+    seconds
+  ) => {
+    const minutes =
+      Math.floor(
+        seconds / 60
+      );
 
     const remainSeconds =
       seconds % 60;
 
-    return `${String(minutes).padStart(
+    return `${String(
+      minutes
+    ).padStart(
       2,
       "0"
     )}:${String(
       remainSeconds
-    ).padStart(2, "0")}`;
+    ).padStart(
+      2,
+      "0"
+    )}`;
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (
+    dateString
+  ) => {
     return new Date(
       dateString
-    ).toLocaleString("ko-KR");
+    ).toLocaleString(
+      "ko-KR"
+    );
   };
 
   /*
    * ==========================================
-   * 지도 제작
+   * Map Object
+   * ==========================================
+   */
+
+  const getObjectIcon = (
+    type
+  ) => {
+    switch (type) {
+      case "cobot":
+        return "🤖";
+
+      case "storage":
+        return "📦";
+
+      case "equipment":
+        return "⚙️";
+
+      default:
+        return "●";
+    }
+  };
+
+  const getObjectTypeName = (
+    type
+  ) => {
+    switch (type) {
+      case "cobot":
+        return "협동로봇";
+
+      case "storage":
+        return "적재물";
+
+      case "equipment":
+        return "고정설비 / 작업대";
+
+      default:
+        return "기타";
+    }
+  };
+
+  /*
+   * Mock Map:
+   * 6m × 6m
+   */
+
+  const convertMapPosition = (
+    position
+  ) => {
+    const MAP_SIZE = 6;
+
+    const x =
+      position?.x ?? 0;
+
+    const y =
+      position?.y ?? 0;
+
+    const left =
+      Math.max(
+        8,
+        Math.min(
+          92,
+          (x / MAP_SIZE) *
+            100
+        )
+      ) + "%";
+
+    const top =
+      Math.max(
+        10,
+        Math.min(
+          90,
+          100 -
+            (y /
+              MAP_SIZE) *
+              100
+        )
+      ) + "%";
+
+    return {
+      left,
+      top,
+    };
+  };
+
+  /*
+   * SLAM Y 값이 크면
+   * 화면 상단에 위치하므로
+   * 말풍선을 아래쪽으로 표시
+   */
+
+  const shouldOpenBelow = (
+    object
+  ) => {
+    return (
+      (object?.position?.y ??
+        0) >= 3
+    );
+  };
+
+  /*
+   * ==========================================
+   * Mapping
    * ==========================================
    */
 
   const createMap = () => {
+    setSelectedMapObjectId(
+      null
+    );
+
     onStartMapping();
   };
 
   /*
    * ==========================================
-   * 순찰 시작
-   *
-   * React
-   * ↓
-   * FastAPI
-   * ↓
-   * Patrol 생성
+   * Patrol Start
    * ==========================================
    */
 
-  const startPatrol = async () => {
-    if (mapStatus !== "ready") {
-      alert(
-        "먼저 작업장 지도를 제작해주세요."
-      );
-
-      return;
-    }
-
-    if (processing) {
-      return;
-    }
-
-    try {
-      setProcessing(true);
-
-      const response = await fetch(
-        `${API_URL}/workplaces/${workplace.id}/patrols/start`,
-        {
-          method: "POST",
-        }
-      );
-
-      if (!response.ok) {
-        const errorData =
-          await response.json();
-
-        throw new Error(
-          errorData.detail ||
-            "순찰 시작 실패"
+  const startPatrol =
+    async () => {
+      if (
+        mapStatus !== "ready"
+      ) {
+        alert(
+          "먼저 작업장 지도를 제작해주세요."
         );
+
+        return;
       }
 
-      const patrol =
-        await response.json();
+      if (processing) {
+        return;
+      }
 
-      /*
-       * Backend가 발급한
-       * 실제 patrol ID 저장
-       */
+      try {
+        setProcessing(true);
 
-      setCurrentPatrolId(
-        patrol.id
-      );
+        setSelectedMapObjectId(
+          null
+        );
 
-      setElapsedTime(0);
+        const response =
+          await fetch(
+            `${API_URL}/workplaces/${workplace.id}/patrols/start`,
+            {
+              method: "POST",
+            }
+          );
 
-      setCurrentEvents([]);
+        if (!response.ok) {
+          const errorData =
+            await response.json();
 
-      setPatrolStatus(
-        "running"
-      );
-    } catch (error) {
-      console.error(error);
+          throw new Error(
+            errorData.detail ||
+              "순찰 시작 실패"
+          );
+        }
 
-      alert(
-        error.message ||
-          "순찰을 시작할 수 없습니다."
-      );
-    } finally {
-      setProcessing(false);
-    }
-  };
+        const patrol =
+          await response.json();
+
+        setCurrentPatrolId(
+          patrol.id
+        );
+
+        setElapsedTime(0);
+
+        setCurrentEvents(
+          []
+        );
+
+        setPatrolStatus(
+          "running"
+        );
+      } catch (error) {
+        console.error(
+          error
+        );
+
+        alert(
+          error.message ||
+            "순찰을 시작할 수 없습니다."
+        );
+      } finally {
+        setProcessing(
+          false
+        );
+      }
+    };
 
   /*
    * ==========================================
-   * 데모 Change Event 발생
-   *
-   * 중요:
-   *
-   * 이제 React는 위험도를 판단하지 않습니다.
-   *
-   * React
-   * ↓
-   * Raw Change Event
-   * ↓
-   * FastAPI
-   * ↓
-   * Risk Engine
-   * ↓
-   * 판단 결과 반환
+   * Demo Event
    * ==========================================
    */
 
-  const createDemoEvent = async () => {
-    if (
-      patrolStatus !== "running" ||
-      !currentPatrolId ||
-      processing
-    ) {
-      return;
-    }
-
-    try {
-      setProcessing(true);
-
-      const eventNumber =
-        currentEvents.length + 1;
-
-      let requestData;
-
-      /*
-       * 홀수 번째 이벤트
-       * = 물병
-       */
-
-      if (eventNumber % 2 === 1) {
-        requestData = {
-          objectType:
-            "water_bottle",
-
-          objectName:
-            "물병",
-
-          zone: "A",
-
-          x: 2.4,
-
-          y: 3.1,
-
-          distanceToCobot:
-            null,
-        };
+  const createDemoEvent =
+    async () => {
+      if (
+        patrolStatus !==
+          "running" ||
+        !currentPatrolId ||
+        processing
+      ) {
+        return;
       }
 
-      /*
-       * 짝수 번째 이벤트
-       * = 상자
-       *
-       * 협동로봇과 거리 0.72m
-       */
+      try {
+        setProcessing(true);
 
-      else {
-        requestData = {
-          objectType:
-            "box",
+        const eventNumber =
+          currentEvents.length +
+          1;
 
-          objectName:
-            "상자",
+        let requestData;
 
-          zone: "A",
+        if (
+          eventNumber % 2 ===
+          1
+        ) {
+          requestData = {
+            objectType:
+              "water_bottle",
 
-          x: 3.1,
+            objectName:
+              "물병",
 
-          y: 2.6,
+            zone: "A",
 
-          distanceToCobot:
-            0.72,
-        };
-      }
+            x: 2.4,
 
-      /*
-       * Change Event를
-       * Backend로 전송
-       */
+            y: 3.1,
 
-      const response = await fetch(
-        `${API_URL}/workplaces/${workplace.id}/patrols/${currentPatrolId}/events`,
-        {
-          method: "POST",
+            distanceToCobot:
+              null,
+          };
+        } else {
+          requestData = {
+            objectType:
+              "box",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+            objectName:
+              "상자",
 
-          body: JSON.stringify(
-            requestData
-          ),
+            zone: "A",
+
+            x: 3.1,
+
+            y: 2.6,
+
+            distanceToCobot:
+              0.72,
+          };
         }
-      );
 
-      if (!response.ok) {
-        const errorData =
+        const response =
+          await fetch(
+            `${API_URL}/workplaces/${workplace.id}/patrols/${currentPatrolId}/events`,
+            {
+              method:
+                "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body:
+                JSON.stringify(
+                  requestData
+                ),
+            }
+          );
+
+        if (!response.ok) {
+          const errorData =
+            await response.json();
+
+          throw new Error(
+            errorData.detail ||
+              "변화 이벤트 처리 실패"
+          );
+        }
+
+        const event =
           await response.json();
 
-        throw new Error(
-          errorData.detail ||
-            "변화 이벤트 처리 실패"
+        setCurrentEvents(
+          (prev) => [
+            event,
+            ...prev,
+          ]
+        );
+      } catch (error) {
+        console.error(
+          error
+        );
+
+        alert(
+          error.message ||
+            "변화 이벤트 처리 중 오류가 발생했습니다."
+        );
+      } finally {
+        setProcessing(
+          false
         );
       }
-
-      /*
-       * 여기서 받은 event에는
-       *
-       * riskLevel
-       * policyViolation
-       * policyName
-       * action
-       *
-       * 등이 이미 Backend에서
-       * 계산되어 있습니다.
-       */
-
-      const event =
-        await response.json();
-
-      setCurrentEvents(
-        (prev) => [
-          event,
-          ...prev,
-        ]
-      );
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        error.message ||
-          "변화 이벤트 처리 중 오류가 발생했습니다."
-      );
-    } finally {
-      setProcessing(false);
-    }
-  };
+    };
 
   /*
    * ==========================================
-   * 순찰 종료
-   *
-   * 1. Backend return-home
-   * 2. 상태 returning
-   * 3. 현재는 3초 Mock
-   * 4. Backend complete
+   * Return Home
    * ==========================================
    */
 
-  const finishPatrol = async () => {
-    if (
-      patrolStatus !== "running" ||
-      !currentPatrolId ||
-      processing
-    ) {
-      return;
-    }
-
-    try {
-      setProcessing(true);
-
-      /*
-       * Backend에
-       * Home 복귀 요청
-       */
-
-      const response = await fetch(
-        `${API_URL}/workplaces/${workplace.id}/patrols/${currentPatrolId}/return-home`,
-        {
-          method: "POST",
-        }
-      );
-
-      if (!response.ok) {
-        const errorData =
-          await response.json();
-
-        throw new Error(
-          errorData.detail ||
-            "원점 복귀 요청 실패"
-        );
+  const finishPatrol =
+    async () => {
+      if (
+        patrolStatus !==
+          "running" ||
+        !currentPatrolId ||
+        processing
+      ) {
+        return;
       }
 
-      /*
-       * Backend 상태가
-       * returning이 되었으므로
-       * 화면도 변경
-       */
+      try {
+        setProcessing(true);
 
-      setPatrolStatus(
-        "returning"
-      );
-
-      setProcessing(false);
-
-      /*
-       * ==================================
-       * MOCK HOME RETURN
-       *
-       * 지금:
-       * 3초 기다림
-       *
-       * 실제 TurtleBot 연결 후:
-       *
-       * Nav2 NavigateToPose
-       * ↓
-       * Home 도착 확인
-       * ↓
-       * complete API
-       * ==================================
-       */
-
-      setTimeout(() => {
-        completePatrol(
-          currentPatrolId
+        setSelectedMapObjectId(
+          null
         );
-      }, 3000);
-    } catch (error) {
-      console.error(error);
 
-      setProcessing(false);
+        const response =
+          await fetch(
+            `${API_URL}/workplaces/${workplace.id}/patrols/${currentPatrolId}/return-home`,
+            {
+              method:
+                "POST",
+            }
+          );
 
-      alert(
-        error.message ||
-          "순찰 종료 중 오류가 발생했습니다."
-      );
-    }
-  };
+        if (!response.ok) {
+          const errorData =
+            await response.json();
+
+          throw new Error(
+            errorData.detail ||
+              "원점 복귀 요청 실패"
+          );
+        }
+
+        setPatrolStatus(
+          "returning"
+        );
+
+        setProcessing(
+          false
+        );
+
+        setTimeout(() => {
+          completePatrol(
+            currentPatrolId
+          );
+        }, 3000);
+      } catch (error) {
+        console.error(
+          error
+        );
+
+        setProcessing(
+          false
+        );
+
+        alert(
+          error.message ||
+            "순찰 종료 중 오류가 발생했습니다."
+        );
+      }
+    };
 
   /*
    * ==========================================
-   * 순찰 완료
+   * Patrol Complete
    * ==========================================
    */
 
-  const completePatrol = async (
-    patrolId
-  ) => {
-    try {
-      setProcessing(true);
+  const completePatrol =
+    async (
+      patrolId
+    ) => {
+      try {
+        setProcessing(
+          true
+        );
 
-      const response = await fetch(
-        `${API_URL}/workplaces/${workplace.id}/patrols/${patrolId}/complete`,
-        {
-          method: "POST",
+        const response =
+          await fetch(
+            `${API_URL}/workplaces/${workplace.id}/patrols/${patrolId}/complete`,
+            {
+              method:
+                "POST",
+            }
+          );
+
+        if (!response.ok) {
+          const errorData =
+            await response.json();
+
+          throw new Error(
+            errorData.detail ||
+              "순찰 완료 처리 실패"
+          );
         }
-      );
 
-      if (!response.ok) {
-        const errorData =
+        const completedPatrol =
           await response.json();
 
-        throw new Error(
-          errorData.detail ||
-            "순찰 완료 처리 실패"
+        onSavePatrol(
+          completedPatrol
+        );
+
+        setPatrolStatus(
+          "idle"
+        );
+
+        setElapsedTime(0);
+
+        setCurrentEvents(
+          []
+        );
+
+        setCurrentPatrolId(
+          null
+        );
+      } catch (error) {
+        console.error(
+          error
+        );
+
+        alert(
+          error.message ||
+            "순찰 완료 처리 중 오류가 발생했습니다."
+        );
+      } finally {
+        setProcessing(
+          false
         );
       }
-
-      /*
-       * Backend가 최종 Patrol 반환
-       */
-
-      const completedPatrol =
-        await response.json();
-
-      /*
-       * App.jsx의 workplaces에도
-       * 완료된 순찰 반영
-       */
-
-      onSavePatrol(
-        completedPatrol
-      );
-
-      /*
-       * 현재 순찰 초기화
-       */
-
-      setPatrolStatus(
-        "idle"
-      );
-
-      setElapsedTime(0);
-
-      setCurrentEvents([]);
-
-      setCurrentPatrolId(
-        null
-      );
-    } catch (error) {
-      console.error(error);
-
-      alert(
-        error.message ||
-          "순찰 완료 처리 중 오류가 발생했습니다."
-      );
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  /*
-   * ==========================================
-   * 현재 HIGH 이벤트 수
-   * ==========================================
-   */
+    };
 
   const currentRiskCount =
     currentEvents.filter(
@@ -515,20 +610,25 @@ function WorkplaceMain({
 
       <main className="main-dashboard">
 
-        {/* ========================= */}
+        {/* ===================== */}
         {/* MAP */}
-        {/* ========================= */}
+        {/* ===================== */}
 
         <section className="map-section">
 
           <button
             className="policy-button"
-            onClick={onOpenPolicy}
+            onClick={
+              onOpenPolicy
+            }
           >
             안전정책
           </button>
 
-          {mapStatus === "empty" && (
+          {/* EMPTY */}
+
+          {mapStatus ===
+            "empty" && (
             <div className="empty-map">
 
               <div className="map-icon">
@@ -541,20 +641,24 @@ function WorkplaceMain({
               </strong>
 
               <p>
-                로봇을 이용해 작업장
-                지도를 먼저
+                로봇을 이용해
+                작업장 지도를 먼저
                 생성해주세요.
               </p>
 
               <button
                 className="map-create-button"
-                onClick={createMap}
+                onClick={
+                  createMap
+                }
               >
                 지도 제작하기
               </button>
 
             </div>
           )}
+
+          {/* CREATING */}
 
           {mapStatus ===
             "creating" && (
@@ -568,8 +672,8 @@ function WorkplaceMain({
               </strong>
 
               <p>
-                현재는 하드웨어 없이
-                Mock Mapping을
+                현재는 하드웨어
+                없이 Mock Mapping을
                 실행하고 있습니다.
               </p>
 
@@ -580,10 +684,22 @@ function WorkplaceMain({
             </div>
           )}
 
-          {mapStatus === "ready" && (
+          {/* READY */}
+
+          {mapStatus ===
+            "ready" && (
             <div className="map-container">
 
-              <div className="map-placeholder">
+              <div
+                className="map-placeholder"
+                onClick={() =>
+                  setSelectedMapObjectId(
+                    null
+                  )
+                }
+              >
+
+                {/* ZONES */}
 
                 <span className="zone zone-a">
                   A
@@ -597,6 +713,203 @@ function WorkplaceMain({
                   C
                 </span>
 
+                {/* WALLS */}
+
+                <div className="wall wall-1" />
+
+                <div className="wall wall-2" />
+
+                <div className="wall wall-3" />
+
+                {/* ================= */}
+                {/* BASELINE OBJECTS */}
+                {/* ================= */}
+
+                {mapObjects.map(
+                  (object) => {
+                    const position =
+                      convertMapPosition(
+                        object.position
+                      );
+
+                    const isSelected =
+                      selectedMapObjectId ===
+                      object.id;
+
+                    const openBelow =
+                      shouldOpenBelow(
+                        object
+                      );
+
+                    return (
+                      <div
+                        key={
+                          object.id
+                        }
+                        className="baseline-object-wrapper"
+                        style={
+                          position
+                        }
+                        onClick={(
+                          event
+                        ) =>
+                          event.stopPropagation()
+                        }
+                      >
+
+                        <button
+                          type="button"
+                          className={
+                            isSelected
+                              ? "baseline-object-marker selected"
+                              : "baseline-object-marker"
+                          }
+                          onClick={() =>
+                            setSelectedMapObjectId(
+                              isSelected
+                                ? null
+                                : object.id
+                            )
+                          }
+                        >
+
+                          <span className="baseline-object-icon">
+                            {getObjectIcon(
+                              object.type
+                            )}
+                          </span>
+
+                          <span className="baseline-object-name">
+                            {
+                              object.name
+                            }
+                          </span>
+
+                        </button>
+
+                        {/* POPOVER */}
+
+                        {isSelected &&
+                          selectedMapObject && (
+                          <div
+                            className={
+                              openBelow
+                                ? "baseline-object-popover baseline-popover-below"
+                                : "baseline-object-popover baseline-popover-above"
+                            }
+                          >
+
+                            <div className="baseline-popover-arrow" />
+
+                            <div className="baseline-popover-header">
+
+                              <strong>
+                                {
+                                  selectedMapObject.name
+                                }
+                              </strong>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setSelectedMapObjectId(
+                                    null
+                                  )
+                                }
+                              >
+                                ×
+                              </button>
+
+                            </div>
+
+                            <div className="baseline-info-row">
+
+                              <span>
+                                종류
+                              </span>
+
+                              <strong>
+                                {getObjectTypeName(
+                                  selectedMapObject.type
+                                )}
+                              </strong>
+
+                            </div>
+
+                            <div className="baseline-info-row">
+
+                              <span>
+                                탐지
+                              </span>
+
+                              <strong>
+                                {
+                                  selectedMapObject.detectedClass
+                                }
+                              </strong>
+
+                            </div>
+
+                            <div className="baseline-info-row">
+
+                              <span>
+                                구역
+                              </span>
+
+                              <strong>
+                                {
+                                  selectedMapObject.zone
+                                }
+                              </strong>
+
+                            </div>
+
+                            <div className="baseline-info-row">
+
+                              <span>
+                                위치
+                              </span>
+
+                              <strong>
+                                X{" "}
+                                {
+                                  selectedMapObject
+                                    .position
+                                    .x
+                                }
+                                {" / "}
+                                Y{" "}
+                                {
+                                  selectedMapObject
+                                    .position
+                                    .y
+                                }
+                              </strong>
+
+                            </div>
+
+                            <div className="baseline-info-row">
+
+                              <span>
+                                상태
+                              </span>
+
+                              <strong>
+                                기준 사물
+                              </strong>
+
+                            </div>
+
+                          </div>
+                        )}
+
+                      </div>
+                    );
+                  }
+                )}
+
+                {/* ROBOT */}
+
                 <span
                   className={
                     patrolStatus ===
@@ -608,13 +921,11 @@ function WorkplaceMain({
                   ●
                 </span>
 
+                {/* HOME */}
+
                 <span className="home-marker">
                   H
                 </span>
-
-                <div className="wall wall-1" />
-                <div className="wall wall-2" />
-                <div className="wall wall-3" />
 
                 <span className="map-label">
                   작업장 지도
@@ -634,9 +945,9 @@ function WorkplaceMain({
 
         </section>
 
-        {/* ========================= */}
+        {/* ===================== */}
         {/* DASHBOARD */}
-        {/* ========================= */}
+        {/* ===================== */}
 
         <section className="dashboard-section">
 
@@ -644,7 +955,7 @@ function WorkplaceMain({
             Dashboard
           </h3>
 
-          {/* 순찰 중 */}
+          {/* RUNNING */}
 
           {patrolStatus ===
             "running" && (
@@ -777,7 +1088,7 @@ function WorkplaceMain({
             </div>
           )}
 
-          {/* Home 복귀 */}
+          {/* RETURNING */}
 
           {patrolStatus ===
             "returning" && (
@@ -792,9 +1103,9 @@ function WorkplaceMain({
               </strong>
 
               <p>
-                순찰을 종료하고 로봇이
-                시작 위치로 이동하고
-                있습니다.
+                순찰을 종료하고
+                로봇이 시작 위치로
+                이동하고 있습니다.
               </p>
 
               <div className="returning-home">
@@ -824,10 +1135,10 @@ function WorkplaceMain({
             </div>
           )}
 
-          {/* 순찰 기록 */}
+          {/* HISTORY */}
 
-          {workplace.patrols?.length >
-            0 && (
+          {workplace.patrols
+            ?.length > 0 && (
             <div className="patrol-history">
 
               <h4>
@@ -838,7 +1149,9 @@ function WorkplaceMain({
                 (patrol) => (
                   <button
                     className="patrol-history-item"
-                    key={patrol.id}
+                    key={
+                      patrol.id
+                    }
                     onClick={() =>
                       onOpenPatrol(
                         patrol.id
@@ -892,8 +1205,10 @@ function WorkplaceMain({
           {patrolStatus ===
             "idle" &&
             (!workplace.patrols ||
-              workplace.patrols
-                .length === 0) && (
+              workplace
+                .patrols
+                .length ===
+                0) && (
               <div className="empty-dashboard">
 
                 <strong>
@@ -901,8 +1216,9 @@ function WorkplaceMain({
                 </strong>
 
                 <p>
-                  순찰을 시작하면 결과가
-                  여기에 표시됩니다.
+                  순찰을 시작하면
+                  결과가 여기에
+                  표시됩니다.
                 </p>
 
               </div>
@@ -912,9 +1228,9 @@ function WorkplaceMain({
 
       </main>
 
-      {/* ========================= */}
+      {/* ===================== */}
       {/* BOTTOM */}
-      {/* ========================= */}
+      {/* ===================== */}
 
       <div className="bottom-area">
 
@@ -922,7 +1238,9 @@ function WorkplaceMain({
           "running" && (
           <button
             className="finish-patrol-button"
-            onClick={finishPatrol}
+            onClick={
+              finishPatrol
+            }
             disabled={
               processing
             }
@@ -945,7 +1263,9 @@ function WorkplaceMain({
           "idle" && (
           <button
             className="patrol-button"
-            onClick={startPatrol}
+            onClick={
+              startPatrol
+            }
             disabled={
               processing
             }

@@ -8,13 +8,13 @@ from pydantic import BaseModel, Field
 
 app = FastAPI(
     title="Safety Robot API",
-    version="0.2.0",
+    version="0.3.0",
 )
 
 
-# ==========================================
+# =========================================================
 # CORS
-# ==========================================
+# =========================================================
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,9 +28,9 @@ app.add_middleware(
 )
 
 
-# ==========================================
+# =========================================================
 # Models
-# ==========================================
+# =========================================================
 
 class Policy(BaseModel):
     noObjects: bool = False
@@ -38,9 +38,38 @@ class Policy(BaseModel):
     noBox: bool = False
 
 
+class Position(BaseModel):
+    x: float
+    y: float
+
+
+class MapObject(BaseModel):
+    id: int
+
+    detectedClass: str
+
+    name: str
+
+    type: str
+
+    position: Position
+
+    zone: str
+
+    status: str = "baseline"
+
+
 class MapData(BaseModel):
+    # empty
+    # creating
+    # object_setup
+    # ready
+
     status: str = "empty"
+
     image: Optional[str] = None
+
+    objects: List[MapObject] = []
 
 
 class WorkplaceCreate(BaseModel):
@@ -52,11 +81,13 @@ class WorkplaceCreate(BaseModel):
 
 class ChangeEventCreate(BaseModel):
     objectType: str
+
     objectName: str
 
     zone: str
 
     x: float
+
     y: float
 
     distanceToCobot: Optional[float] = None
@@ -68,6 +99,7 @@ class ChangeEvent(BaseModel):
     type: str = "NEW_OBJECT"
 
     objectType: str
+
     objectName: str
 
     zone: str
@@ -77,6 +109,7 @@ class ChangeEvent(BaseModel):
     distanceToCobot: Optional[float] = None
 
     policyViolation: bool = False
+
     distanceViolation: bool = False
 
     policyName: Optional[str] = None
@@ -84,6 +117,7 @@ class ChangeEvent(BaseModel):
     riskLevel: str = "NORMAL"
 
     action: str = "NONE"
+
     actionText: str = "조치 없음"
 
     detectedAt: str
@@ -123,9 +157,9 @@ class Workplace(BaseModel):
     patrols: List[Patrol] = []
 
 
-# ==========================================
-# 기본 데이터
-# ==========================================
+# =========================================================
+# 기본 데이터 생성
+# =========================================================
 
 def create_default_policies():
     return {
@@ -149,20 +183,24 @@ def create_workplace(
     )
 
 
-# ==========================================
-# 임시 Memory DB
-# ==========================================
+# =========================================================
+# Memory DB
+#
+# 나중에 PostgreSQL로 교체
+# =========================================================
 
 workplaces: Dict[int, Workplace] = {}
 
 next_workplace_id = 1
+
 next_patrol_id = 1
+
 next_event_id = 1
 
 
-# ==========================================
+# =========================================================
 # 공통 함수
-# ==========================================
+# =========================================================
 
 def find_workplace(
     workplace_id: int,
@@ -185,6 +223,7 @@ def find_patrol(
     patrol_id: int,
 ):
     for patrol in workplace.patrols:
+
         if patrol.id == patrol_id:
             return patrol
 
@@ -194,72 +233,80 @@ def find_patrol(
     )
 
 
-# ==========================================
+# =========================================================
 # Risk Engine
-# ==========================================
+#
+# 현재:
+# Rule 기반 임시 Risk Engine
+#
+# 추후:
+# ML Risk Engine으로 교체
+# =========================================================
 
 def evaluate_risk(
     workplace: Workplace,
     event_data: ChangeEventCreate,
 ):
-    """
-    Safety Policy + Risk 판단
-
-    현재 Demo 규칙
-
-    1. 구역의 사물 배치 금지
-    2. 물병 금지
-    3. 상자 금지
-    4. 협동로봇 1m 이내 상자 탐지
-
-    추후 별도 Risk Engine 모듈로 분리
-    """
 
     zone = event_data.zone
 
-    policy = workplace.policies.get(zone)
+    policy = workplace.policies.get(
+        zone
+    )
 
     policy_violation = False
+
     distance_violation = False
+
     policy_name = None
 
     risk_level = "NORMAL"
 
     action = "NONE"
+
     action_text = "조치 없음"
 
-    # --------------------------------------
-    # 구역 정책 확인
-    # --------------------------------------
+    # -----------------------------------------------------
+    # 구역 Safety Policy
+    # -----------------------------------------------------
 
     if policy:
 
-        # 모든 새로운 사물 금지
         if policy.noObjects:
-            policy_violation = True
-            policy_name = "사물 배치 금지"
 
-        # 물병 금지
+            policy_violation = True
+
+            policy_name = (
+                "사물 배치 금지"
+            )
+
         elif (
             event_data.objectType
             == "water_bottle"
             and policy.noBottle
         ):
-            policy_violation = True
-            policy_name = "물병 금지"
 
-        # 상자 금지
+            policy_violation = True
+
+            policy_name = (
+                "물병 금지"
+            )
+
         elif (
             event_data.objectType
             == "box"
             and policy.noBox
         ):
-            policy_violation = True
-            policy_name = "상자 금지"
 
-    # --------------------------------------
+            policy_violation = True
+
+            policy_name = (
+                "상자 금지"
+            )
+
+    # -----------------------------------------------------
     # 협동로봇 안전거리
-    # --------------------------------------
+    # -----------------------------------------------------
 
     if (
         event_data.objectType == "box"
@@ -269,23 +316,27 @@ def evaluate_risk(
         and
         event_data.distanceToCobot <= 1.0
     ):
+
         distance_violation = True
 
         if policy_name is None:
+
             policy_name = (
                 "협동로봇 1m 안전거리"
             )
 
-    # --------------------------------------
-    # 최종 Risk
-    # --------------------------------------
+    # -----------------------------------------------------
+    # 최종 판단
+    # -----------------------------------------------------
 
     dangerous = (
         policy_violation
-        or distance_violation
+        or
+        distance_violation
     )
 
     if dangerous:
+
         risk_level = "HIGH"
 
         action = "COBOT_STOP"
@@ -315,23 +366,25 @@ def evaluate_risk(
     }
 
 
-# ==========================================
+# =========================================================
 # Health
-# ==========================================
+# =========================================================
 
 @app.get("/health")
 def health_check():
+
     return {
         "status": "ok",
     }
 
 
-# ==========================================
+# =========================================================
 # Workplace
-# ==========================================
+# =========================================================
 
 @app.get("/workplaces")
 def get_workplaces():
+
     return list(
         workplaces.values()
     )
@@ -343,6 +396,7 @@ def get_workplaces():
 def get_workplace(
     workplace_id: int,
 ):
+
     return find_workplace(
         workplace_id
     )
@@ -355,6 +409,7 @@ def get_workplace(
 def create_new_workplace(
     data: WorkplaceCreate,
 ):
+
     global next_workplace_id
 
     workplace = create_workplace(
@@ -371,9 +426,16 @@ def create_new_workplace(
     return workplace
 
 
-# ==========================================
-# Map
-# ==========================================
+# =========================================================
+# MAP
+# =========================================================
+
+
+# ---------------------------------------------------------
+# 지도 제작 시작
+#
+# empty → creating
+# ---------------------------------------------------------
 
 @app.post(
     "/workplaces/{workplace_id}/map/start"
@@ -381,6 +443,7 @@ def create_new_workplace(
 def start_mapping(
     workplace_id: int,
 ):
+
     workplace = find_workplace(
         workplace_id
     )
@@ -388,6 +451,8 @@ def start_mapping(
     workplace.map.status = (
         "creating"
     )
+
+    workplace.map.objects = []
 
     return {
         "message":
@@ -398,26 +463,221 @@ def start_mapping(
     }
 
 
+# ---------------------------------------------------------
+# 지도 스캔 완료
+#
+# creating → object_setup
+#
+# 현재는 Mock 객체 생성
+#
+# 실제 하드웨어 연결 후:
+#
+# SLAM
+# +
+# RealSense
+# +
+# YOLO
+# +
+# TF
+#
+# 결과가 이 API에 들어오게 됨
+# ---------------------------------------------------------
+
+@app.post(
+    "/workplaces/{workplace_id}/map/scan-complete"
+)
+def scan_complete(
+    workplace_id: int,
+):
+
+    workplace = find_workplace(
+        workplace_id
+    )
+
+    if (
+        workplace.map.status
+        != "creating"
+    ):
+
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "현재 지도 제작 중이 "
+                "아닙니다."
+            ),
+        )
+
+    # -----------------------------------------------------
+    # MOCK 탐지 객체
+    # -----------------------------------------------------
+
+    mock_objects = [
+
+        MapObject(
+            id=1,
+
+            detectedClass="robot",
+
+            name="미지정 객체 1",
+
+            type="cobot",
+
+            position=Position(
+                x=2.4,
+                y=3.1,
+            ),
+
+            zone="A",
+
+            status="baseline",
+        ),
+
+        MapObject(
+            id=2,
+
+            detectedClass="pallet",
+
+            name="미지정 객체 2",
+
+            type="storage",
+
+            position=Position(
+                x=4.2,
+                y=1.8,
+            ),
+
+            zone="B",
+
+            status="baseline",
+        ),
+
+        MapObject(
+            id=3,
+
+            detectedClass="workbench",
+
+            name="미지정 객체 3",
+
+            type="equipment",
+
+            position=Position(
+                x=1.5,
+                y=4.0,
+            ),
+
+            zone="C",
+
+            status="baseline",
+        ),
+    ]
+
+    workplace.map.objects = (
+        mock_objects
+    )
+
+    workplace.map.status = (
+        "object_setup"
+    )
+
+    return {
+        "message":
+            "지도 스캔이 완료되었습니다.",
+
+        "map":
+            workplace.map,
+    }
+
+
+# ---------------------------------------------------------
+# 탐지 객체 수정 / 저장
+#
+# 관리자가 이름 / 종류 / Zone 등을 수정한 결과
+# ---------------------------------------------------------
+
+@app.put(
+    "/workplaces/{workplace_id}/map/objects"
+)
+def update_map_objects(
+    workplace_id: int,
+    objects: List[MapObject],
+):
+
+    workplace = find_workplace(
+        workplace_id
+    )
+
+    if (
+        workplace.map.status
+        != "object_setup"
+    ):
+
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "현재 초기 사물 설정 "
+                "단계가 아닙니다."
+            ),
+        )
+
+    workplace.map.objects = (
+        objects
+    )
+
+    return {
+        "message":
+            "지도 객체가 저장되었습니다.",
+
+        "objects":
+            workplace.map.objects,
+    }
+
+
+# ---------------------------------------------------------
+# 초기 객체 설정 완료
+#
+# object_setup → ready
+# ---------------------------------------------------------
+
 @app.post(
     "/workplaces/{workplace_id}/map/complete"
 )
 def complete_mapping(
     workplace_id: int,
 ):
+
     workplace = find_workplace(
         workplace_id
     )
 
-    workplace.map.status = "ready"
+    if (
+        workplace.map.status
+        != "object_setup"
+    ):
+
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "초기 사물 설정이 "
+                "완료되지 않았습니다."
+            ),
+        )
+
+    workplace.map.status = (
+        "ready"
+    )
 
     return {
         "message":
-            "지도 제작이 완료되었습니다.",
+            "지도 설정이 완료되었습니다.",
 
         "map":
             workplace.map,
     }
 
+
+# ---------------------------------------------------------
+# 지도 조회
+# ---------------------------------------------------------
 
 @app.get(
     "/workplaces/{workplace_id}/map"
@@ -425,6 +685,7 @@ def complete_mapping(
 def get_map(
     workplace_id: int,
 ):
+
     workplace = find_workplace(
         workplace_id
     )
@@ -432,9 +693,9 @@ def get_map(
     return workplace.map
 
 
-# ==========================================
+# =========================================================
 # Safety Policy
-# ==========================================
+# =========================================================
 
 @app.get(
     "/workplaces/{workplace_id}/policies"
@@ -442,6 +703,7 @@ def get_map(
 def get_policies(
     workplace_id: int,
 ):
+
     workplace = find_workplace(
         workplace_id
     )
@@ -456,11 +718,14 @@ def update_policies(
     workplace_id: int,
     policies: Dict[str, Policy],
 ):
+
     workplace = find_workplace(
         workplace_id
     )
 
-    workplace.policies = policies
+    workplace.policies = (
+        policies
+    )
 
     return {
         "message":
@@ -471,9 +736,9 @@ def update_policies(
     }
 
 
-# ==========================================
-# Patrol
-# ==========================================
+# =========================================================
+# Patrol Start
+# =========================================================
 
 @app.post(
     "/workplaces/{workplace_id}/patrols/start",
@@ -482,17 +747,23 @@ def update_policies(
 def start_patrol(
     workplace_id: int,
 ):
+
     global next_patrol_id
 
     workplace = find_workplace(
         workplace_id
     )
 
-    if workplace.map.status != "ready":
+    if (
+        workplace.map.status
+        != "ready"
+    ):
+
         raise HTTPException(
             status_code=400,
             detail=(
-                "지도가 생성되지 않았습니다."
+                "지도 설정이 "
+                "완료되지 않았습니다."
             ),
         )
 
@@ -518,9 +789,9 @@ def start_patrol(
     return patrol
 
 
-# ==========================================
+# =========================================================
 # Change Event
-# ==========================================
+# =========================================================
 
 @app.post(
     "/workplaces/{workplace_id}/patrols/{patrol_id}/events",
@@ -531,6 +802,7 @@ def create_change_event(
     patrol_id: int,
     data: ChangeEventCreate,
 ):
+
     global next_event_id
 
     workplace = find_workplace(
@@ -542,7 +814,11 @@ def create_change_event(
         patrol_id,
     )
 
-    if patrol.status != "running":
+    if (
+        patrol.status
+        != "running"
+    ):
+
         raise HTTPException(
             status_code=400,
             detail=(
@@ -550,10 +826,6 @@ def create_change_event(
                 "순찰이 아닙니다."
             ),
         )
-
-    # --------------------------------------
-    # Risk Engine 실행
-    # --------------------------------------
 
     risk_result = evaluate_risk(
         workplace,
@@ -571,7 +843,8 @@ def create_change_event(
         objectName=
             data.objectName,
 
-        zone=data.zone,
+        zone=
+            data.zone,
 
         position={
             "x": data.x,
@@ -612,9 +885,9 @@ def create_change_event(
     return event
 
 
-# ==========================================
+# =========================================================
 # Return Home
-# ==========================================
+# =========================================================
 
 @app.post(
     "/workplaces/{workplace_id}/patrols/{patrol_id}/return-home"
@@ -623,6 +896,7 @@ def return_home(
     workplace_id: int,
     patrol_id: int,
 ):
+
     workplace = find_workplace(
         workplace_id
     )
@@ -632,7 +906,11 @@ def return_home(
         patrol_id,
     )
 
-    if patrol.status != "running":
+    if (
+        patrol.status
+        != "running"
+    ):
+
         raise HTTPException(
             status_code=400,
             detail=(
@@ -641,7 +919,9 @@ def return_home(
             ),
         )
 
-    patrol.status = "returning"
+    patrol.status = (
+        "returning"
+    )
 
     return {
         "message":
@@ -652,9 +932,9 @@ def return_home(
     }
 
 
-# ==========================================
+# =========================================================
 # Patrol Complete
-# ==========================================
+# =========================================================
 
 @app.post(
     "/workplaces/{workplace_id}/patrols/{patrol_id}/complete"
@@ -663,6 +943,7 @@ def complete_patrol(
     workplace_id: int,
     patrol_id: int,
 ):
+
     workplace = find_workplace(
         workplace_id
     )
@@ -676,6 +957,7 @@ def complete_patrol(
         "running",
         "returning",
     ]:
+
         raise HTTPException(
             status_code=400,
             detail=(
@@ -686,8 +968,10 @@ def complete_patrol(
 
     end_time = datetime.now()
 
-    start_time = datetime.fromisoformat(
-        patrol.startedAt
+    start_time = (
+        datetime.fromisoformat(
+            patrol.startedAt
+        )
     )
 
     patrol.endedAt = (
@@ -701,7 +985,9 @@ def complete_patrol(
         ).total_seconds()
     )
 
-    patrol.status = "completed"
+    patrol.status = (
+        "completed"
+    )
 
     patrol.returnedHome = True
 
@@ -714,9 +1000,9 @@ def complete_patrol(
     return patrol
 
 
-# ==========================================
+# =========================================================
 # Patrol List
-# ==========================================
+# =========================================================
 
 @app.get(
     "/workplaces/{workplace_id}/patrols"
@@ -724,6 +1010,7 @@ def complete_patrol(
 def get_patrols(
     workplace_id: int,
 ):
+
     workplace = find_workplace(
         workplace_id
     )
@@ -738,6 +1025,7 @@ def get_patrol(
     workplace_id: int,
     patrol_id: int,
 ):
+
     workplace = find_workplace(
         workplace_id
     )

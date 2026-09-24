@@ -1017,6 +1017,859 @@ button {
     left: 43px;
   }
 }
+/* =========================================================
+   MAP OBJECT SETUP
+========================================================= */
+
+.map-setup-header {
+  padding: 24px 22px 18px;
+
+  border-bottom: 1px solid #eceff2;
+
+  background: white;
+}
+
+.map-setup-step {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #8a929d;
+
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.map-setup-header h2 {
+  margin: 0;
+
+  font-size: 20px;
+}
+
+.map-setup-header p {
+  margin: 8px 0 0;
+
+  color: #7a828d;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   SETUP CONTENT
+========================================================= */
+
+.map-object-setup-page {
+  padding: 20px 18px 120px;
+
+  box-sizing: border-box;
+
+  background: #f7f8fa;
+}
+
+
+/* =========================================================
+   SETUP MAP
+========================================================= */
+
+.setup-map-section {
+  width: 100%;
+}
+
+.setup-object-map {
+  position: relative;
+
+  width: 100%;
+  height: 360px;
+
+  overflow: visible;
+
+  box-sizing: border-box;
+
+  background: #fafbfc;
+
+  border: 1px solid #d8dde4;
+  border-radius: 18px;
+}
+
+
+/* GRID */
+
+.setup-grid {
+  position: absolute;
+
+  inset: 0;
+
+  overflow: hidden;
+
+  border-radius: 18px;
+
+  background-image:
+    linear-gradient(
+      #e9edf1 1px,
+      transparent 1px
+    ),
+    linear-gradient(
+      90deg,
+      #e9edf1 1px,
+      transparent 1px
+    );
+
+  background-size:
+    28px 28px;
+}
+
+
+/* =========================================================
+   SETUP ZONES
+========================================================= */
+
+.setup-zone {
+  position: absolute;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 34px;
+  height: 34px;
+
+  border-radius: 50%;
+
+  background: #e4e7eb;
+
+  color: #111827;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  z-index: 2;
+}
+
+.setup-zone-a {
+  top: 18px;
+  left: 18px;
+}
+
+.setup-zone-b {
+  top: 18px;
+  left: 50%;
+
+  transform:
+    translateX(-50%);
+}
+
+.setup-zone-c {
+  top: 18px;
+  right: 18px;
+}
+
+
+/* =========================================================
+   SETUP WALLS
+========================================================= */
+
+.setup-wall {
+  position: absolute;
+
+  background: #3c4450;
+
+  z-index: 2;
+}
+
+.setup-wall-1 {
+  top: 88px;
+  left: 54px;
+
+  width: 7px;
+  height: 150px;
+}
+
+.setup-wall-2 {
+  top: 88px;
+  left: 54px;
+
+  width: 70px;
+  height: 7px;
+}
+
+.setup-wall-3 {
+  right: 50px;
+  bottom: 72px;
+
+  width: 120px;
+  height: 7px;
+}
+
+
+/* =========================================================
+   SETUP HOME
+========================================================= */
+
+.setup-home-marker {
+  position: absolute;
+
+  left: 18px;
+  bottom: 18px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 50%;
+
+  background: #202631;
+
+  color: white;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  z-index: 4;
+}
+
+.setup-map-label {
+  position: absolute;
+
+  left: 18px;
+  bottom: 5px;
+
+  color: #929aa5;
+
+  font-size: 10px;
+
+  z-index: 3;
+}
+
+
+/* =========================================================
+   SETUP OBJECT MARKERS
+========================================================= */
+
+.setup-object-wrapper {
+  position: absolute;
+
+  transform:
+    translate(-50%, -50%);
+
+  z-index: 20;
+}
+
+.setup-object-marker {
+  display: flex;
+
+  flex-direction: column;
+  align-items: center;
+
+  padding: 2px;
+
+  border: none;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.setup-object-icon {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 40px;
+  height: 40px;
+
+  box-sizing: border-box;
+
+  border: 2px solid #cfd5dc;
+  border-radius: 50%;
+
+  background: white;
+
+  font-size: 19px;
+
+  box-shadow:
+    0 3px 10px
+    rgba(0, 0, 0, 0.08);
+}
+
+.setup-object-marker.selected
+.setup-object-icon {
+  border-color: #111827;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(17, 24, 39, 0.08);
+}
+
+.setup-object-name {
+  max-width: 95px;
+
+  margin-top: 4px;
+
+  padding: 3px 6px;
+
+  overflow: hidden;
+
+  border-radius: 6px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.94
+    );
+
+  color: #222;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   SETUP POPOVER
+========================================================= */
+
+.setup-object-popover {
+  position: absolute;
+
+  left: 50%;
+
+  width: 210px;
+
+  padding: 14px;
+
+  box-sizing: border-box;
+
+  transform:
+    translateX(-50%);
+
+  border: 1px solid #dce1e7;
+  border-radius: 14px;
+
+  background: white;
+
+  box-shadow:
+    0 10px 28px
+    rgba(0, 0, 0, 0.16);
+
+  z-index: 200;
+}
+
+
+/* 상단 객체 → 아래 */
+
+.setup-popover-below {
+  top: 62px;
+}
+
+
+/* 하단 객체 → 위 */
+
+.setup-popover-above {
+  bottom: 62px;
+}
+
+
+/* 화살표 */
+
+.setup-popover-below
+.setup-popover-arrow {
+  position: absolute;
+
+  top: -7px;
+  left: 50%;
+
+  width: 14px;
+  height: 14px;
+
+  transform:
+    translateX(-50%)
+    rotate(45deg);
+
+  border-top: 1px solid #dce1e7;
+  border-left: 1px solid #dce1e7;
+
+  background: white;
+}
+
+.setup-popover-above
+.setup-popover-arrow {
+  position: absolute;
+
+  bottom: -7px;
+  left: 50%;
+
+  width: 14px;
+  height: 14px;
+
+  transform:
+    translateX(-50%)
+    rotate(45deg);
+
+  border-right: 1px solid #dce1e7;
+  border-bottom: 1px solid #dce1e7;
+
+  background: white;
+}
+
+
+/* Header */
+
+.setup-popover-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  margin-bottom: 12px;
+}
+
+.setup-popover-header strong {
+  font-size: 13px;
+}
+
+.setup-popover-header button {
+  width: 25px;
+  height: 25px;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #f1f3f5;
+
+  color: #555;
+
+  cursor: pointer;
+}
+
+
+/* Fields */
+
+.setup-field {
+  display: block;
+
+  margin-bottom: 10px;
+}
+
+.setup-field > span {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #7d8590;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.setup-field input,
+.setup-field select {
+  width: 100%;
+
+  padding: 9px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #dce1e7;
+  border-radius: 8px;
+
+  background: white;
+
+  font-size: 12px;
+}
+
+
+/* Info */
+
+.setup-info-row {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 6px 0;
+
+  border-bottom:
+    1px solid #f0f2f4;
+
+  font-size: 10px;
+}
+
+.setup-info-row span {
+  color: #8a929c;
+}
+
+.setup-info-row strong {
+  text-align: right;
+}
+
+.setup-confirm-button {
+  width: 100%;
+
+  margin-top: 10px;
+
+  padding: 9px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #111827;
+
+  color: white;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   SETUP SUMMARY
+========================================================= */
+
+.setup-summary {
+  margin-top: 16px;
+
+  padding: 15px;
+
+  border: 1px solid #e1e5ea;
+  border-radius: 14px;
+
+  background: white;
+}
+
+.setup-summary-top {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+}
+
+.setup-summary-top strong,
+.setup-summary-top span {
+  font-size: 12px;
+}
+
+.setup-summary p {
+  margin: 7px 0 0;
+
+  color: #808894;
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   SETUP BOTTOM
+========================================================= */
+
+.map-setup-bottom {
+  padding: 12px 18px 22px;
+
+  background: white;
+}
+
+.map-setup-apply-button {
+  width: 100%;
+
+  padding: 14px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: #111827;
+
+  color: white;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+.map-setup-apply-button:disabled {
+  opacity: 0.6;
+
+  cursor: default;
+}
+
+
+/* =========================================================
+   MAIN MAP - BASELINE OBJECT
+========================================================= */
+
+.baseline-object-wrapper {
+  position: absolute;
+
+  transform:
+    translate(-50%, -50%);
+
+  z-index: 20;
+}
+
+.baseline-object-marker {
+  display: flex;
+
+  flex-direction: column;
+  align-items: center;
+
+  padding: 2px;
+
+  border: none;
+
+  background: transparent;
+
+  cursor: pointer;
+}
+
+.baseline-object-icon {
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 38px;
+  height: 38px;
+
+  box-sizing: border-box;
+
+  border: 2px solid #cbd2da;
+  border-radius: 50%;
+
+  background: white;
+
+  font-size: 18px;
+
+  box-shadow:
+    0 3px 10px
+    rgba(0, 0, 0, 0.09);
+}
+
+.baseline-object-marker.selected
+.baseline-object-icon {
+  border-color: #111827;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(17, 24, 39, 0.08);
+}
+
+.baseline-object-name {
+  max-width: 95px;
+
+  margin-top: 4px;
+
+  padding: 3px 6px;
+
+  overflow: hidden;
+
+  border-radius: 6px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.94
+    );
+
+  color: #222;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   MAIN MAP - POPOVER
+========================================================= */
+
+.baseline-object-popover {
+  position: absolute;
+
+  left: 50%;
+
+  width: 200px;
+
+  padding: 14px;
+
+  box-sizing: border-box;
+
+  transform:
+    translateX(-50%);
+
+  border: 1px solid #dce1e7;
+  border-radius: 14px;
+
+  background: white;
+
+  box-shadow:
+    0 10px 28px
+    rgba(0, 0, 0, 0.16);
+
+  z-index: 300;
+}
+
+
+/* 지도 위쪽 객체 */
+
+.baseline-popover-below {
+  top: 62px;
+}
+
+
+/* 지도 아래쪽 객체 */
+
+.baseline-popover-above {
+  bottom: 62px;
+}
+
+
+/* 아래쪽 말풍선 화살표 */
+
+.baseline-popover-below
+.baseline-popover-arrow {
+  position: absolute;
+
+  top: -7px;
+  left: 50%;
+
+  width: 14px;
+  height: 14px;
+
+  transform:
+    translateX(-50%)
+    rotate(45deg);
+
+  border-top: 1px solid #dce1e7;
+  border-left: 1px solid #dce1e7;
+
+  background: white;
+}
+
+
+/* 위쪽 말풍선 화살표 */
+
+.baseline-popover-above
+.baseline-popover-arrow {
+  position: absolute;
+
+  bottom: -7px;
+  left: 50%;
+
+  width: 14px;
+  height: 14px;
+
+  transform:
+    translateX(-50%)
+    rotate(45deg);
+
+  border-right: 1px solid #dce1e7;
+  border-bottom: 1px solid #dce1e7;
+
+  background: white;
+}
+
+
+/* Popover Header */
+
+.baseline-popover-header {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  margin-bottom: 9px;
+}
+
+.baseline-popover-header strong {
+  min-width: 0;
+
+  overflow: hidden;
+
+  font-size: 13px;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+.baseline-popover-header button {
+  flex-shrink: 0;
+
+  width: 25px;
+  height: 25px;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #f1f3f5;
+
+  color: #555;
+
+  cursor: pointer;
+}
+
+
+/* Popover Info */
+
+.baseline-info-row {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding: 7px 0;
+
+  border-bottom:
+    1px solid #f0f2f4;
+
+  font-size: 10px;
+}
+
+.baseline-info-row:last-child {
+  border-bottom: none;
+}
+
+.baseline-info-row span {
+  color: #858d98;
+}
+
+.baseline-info-row strong {
+  text-align: right;
+}
 
 .loading-screen {
   display: flex;
@@ -1026,4 +1879,70 @@ button {
   color: #777;
   font-size: 13px;
   font-weight: 600;
+}
+
+
+/* ========================================
+   Main Map Popover Clipping Fix
+======================================== */
+
+/* 말풍선이 지도 영역 밖으로 나갈 수 있도록 */
+.map-section,
+.map-container,
+.map-placeholder {
+  overflow: visible !important;
+}
+
+/* 지도 자체 기준점 */
+.map-placeholder {
+  position: relative;
+}
+
+/* 객체가 다른 지도 요소보다 위에 표시 */
+.baseline-object-wrapper {
+  z-index: 100;
+}
+
+/* 선택된 객체는 최상단 */
+.baseline-object-wrapper:has(
+  .baseline-object-marker.selected
+) {
+  z-index: 1000;
+}
+
+/* 말풍선 */
+.baseline-object-popover {
+  z-index: 2000;
+}
+
+
+/* ========================================
+   위쪽 객체 → 말풍선 아래
+======================================== */
+
+.baseline-popover-below {
+  top: 58px;
+  bottom: auto;
+}
+
+
+/* ========================================
+   아래쪽 객체 → 말풍선 위
+======================================== */
+
+.baseline-popover-above {
+  top: auto;
+  bottom: 58px;
+}
+
+
+/* ========================================
+   좌우 화면 이탈 방지
+======================================== */
+
+.baseline-object-popover {
+  width: 190px;
+
+  max-width:
+    calc(100vw - 48px);
 }

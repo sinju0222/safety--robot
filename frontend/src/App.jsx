@@ -6,6 +6,7 @@ import AddWorkplace from "./pages/AddWorkplace";
 import WorkplaceMain from "./pages/WorkplaceMain";
 import SafetyPolicy from "./pages/SafetyPolicy";
 import PatrolDetail from "./pages/PatrolDetail";
+import MapObjectSetup from "./pages/MapObjectSetup";
 
 const API_URL = "http://127.0.0.1:8000";
 
@@ -144,6 +145,20 @@ function App() {
       workplace.id
     );
 
+    /*
+     * 만약 초기 사물 설정 도중
+     * 화면을 나갔다가 다시 들어온 경우
+     * 설정 화면으로 복귀
+     */
+
+    if (
+      workplace.map?.status ===
+      "object_setup"
+    ) {
+      setPage("mapObjectSetup");
+      return;
+    }
+
     setPage("main");
   };
 
@@ -183,11 +198,15 @@ function App() {
    * ===============================
    * 지도 제작 시작
    *
-   * React
+   * empty
    * ↓
-   * FastAPI
+   * creating
    * ↓
-   * Mock Mapping
+   * Mock Scan
+   * ↓
+   * object_setup
+   * ↓
+   * MapObjectSetup
    * ===============================
    */
 
@@ -198,7 +217,8 @@ function App() {
 
     try {
       /*
-       * Backend에 Mapping 시작 요청
+       * 1.
+       * Backend Mapping 시작
        */
 
       const startResponse =
@@ -219,8 +239,8 @@ function App() {
         await startResponse.json();
 
       /*
-       * React 화면을
-       * creating 상태로 변경
+       * 2.
+       * React를 creating 상태로 변경
        */
 
       updateLocalWorkplace(
@@ -234,11 +254,13 @@ function App() {
 
       /*
        * =================================
-       * MOCK
+       * MOCK MAPPING
        *
-       * 실제 하드웨어 연결 후에는
-       * 이 부분이 ROS2 SLAM 완료 이벤트로
-       * 교체됩니다.
+       * 실제 시스템에서는
+       * TurtleBot3 + SLAM이
+       * 작업장을 스캔하는 시간
+       *
+       * 추후 ROS2 이벤트로 교체
        * =================================
        */
 
@@ -247,28 +269,38 @@ function App() {
       );
 
       /*
-       * Mock Mapping 완료
+       * 3.
+       * 지도 스캔 완료
+       *
+       * 여기서 Backend가
+       * Mock 탐지 객체를 생성
        */
 
-      const completeResponse =
+      const scanResponse =
         await fetch(
-          `${API_URL}/workplaces/${selectedWorkplaceId}/map/complete`,
+          `${API_URL}/workplaces/${selectedWorkplaceId}/map/scan-complete`,
           {
             method: "POST",
           }
         );
 
-      if (!completeResponse.ok) {
+      if (!scanResponse.ok) {
+        const errorData =
+          await scanResponse.json();
+
         throw new Error(
-          "지도 제작 완료 처리 실패"
+          errorData.detail ||
+            "지도 스캔 완료 처리 실패"
         );
       }
 
-      const completeData =
-        await completeResponse.json();
+      const scanData =
+        await scanResponse.json();
 
       /*
-       * Backend 결과를 React에 반영
+       * 4.
+       * 지도 + 탐지 객체
+       * React 상태에 저장
        */
 
       updateLocalWorkplace(
@@ -276,16 +308,61 @@ function App() {
         (workplace) => ({
           ...workplace,
 
-          map: completeData.map,
+          map: scanData.map,
         })
       );
+
+      /*
+       * 5.
+       * 초기 사물 설정 화면으로 이동
+       */
+
+      setPage("mapObjectSetup");
     } catch (error) {
       console.error(error);
 
       alert(
-        "지도 제작 중 오류가 발생했습니다."
+        error.message ||
+          "지도 제작 중 오류가 발생했습니다."
       );
     }
+  };
+
+  /*
+   * ===============================
+   * 초기 지도 객체 설정 완료
+   *
+   * MapObjectSetup에서
+   * Backend 저장까지 완료된 후 호출
+   * ===============================
+   */
+
+  const completeMapObjectSetup = (
+    mapData
+  ) => {
+    if (!selectedWorkplaceId) {
+      return;
+    }
+
+    /*
+     * Backend에서 받은
+     * 최종 ready Map 저장
+     */
+
+    updateLocalWorkplace(
+      selectedWorkplaceId,
+      (workplace) => ({
+        ...workplace,
+
+        map: mapData,
+      })
+    );
+
+    /*
+     * 작업장 메인으로 복귀
+     */
+
+    setPage("main");
   };
 
   /*
@@ -327,11 +404,6 @@ function App() {
       const data =
         await response.json();
 
-      /*
-       * Backend에서 저장된 정책으로
-       * React 상태 갱신
-       */
-
       updateLocalWorkplace(
         selectedWorkplaceId,
         (workplace) => ({
@@ -354,8 +426,6 @@ function App() {
   /*
    * ===============================
    * 순찰 저장
-   *
-   * 아직 Mock / React 로컬
    * ===============================
    */
 
@@ -402,7 +472,7 @@ function App() {
 
   /*
    * ===============================
-   * Backend 초기 연결 중
+   * Backend 초기 연결
    * ===============================
    */
 
@@ -421,7 +491,9 @@ function App() {
   return (
     <div className="app">
 
+      {/* ============================= */}
       {/* 작업장 목록 */}
+      {/* ============================= */}
 
       {page === "list" && (
         <WorkplaceList
@@ -435,7 +507,9 @@ function App() {
         />
       )}
 
+      {/* ============================= */}
       {/* 작업장 추가 */}
+      {/* ============================= */}
 
       {page === "add" && (
         <AddWorkplace
@@ -448,7 +522,9 @@ function App() {
         />
       )}
 
+      {/* ============================= */}
       {/* 작업장 메인 */}
+      {/* ============================= */}
 
       {page === "main" &&
         selectedWorkplace && (
@@ -456,17 +532,15 @@ function App() {
             workplace={
               selectedWorkplace
             }
+
             onBack={() =>
               setPage("list")
             }
+
             onOpenPolicy={() =>
               setPage("policy")
             }
 
-            /*
-             * 기존 onMapStatusChange 대신
-             * Backend Mapping 함수 전달
-             */
             onStartMapping={
               startMapping
             }
@@ -474,13 +548,33 @@ function App() {
             onSavePatrol={
               savePatrol
             }
+
             onOpenPatrol={
               openPatrolDetail
             }
           />
         )}
 
+      {/* ============================= */}
+      {/* 초기 사물 설정 */}
+      {/* ============================= */}
+
+      {page === "mapObjectSetup" &&
+        selectedWorkplace && (
+          <MapObjectSetup
+            workplace={
+              selectedWorkplace
+            }
+
+            onComplete={
+              completeMapObjectSetup
+            }
+          />
+        )}
+
+      {/* ============================= */}
       {/* 안전정책 */}
+      {/* ============================= */}
 
       {page === "policy" &&
         selectedWorkplace && (
@@ -488,16 +582,20 @@ function App() {
             policies={
               selectedWorkplace.policies
             }
+
             onBack={() =>
               setPage("main")
             }
+
             onSave={
               savePolicies
             }
           />
         )}
 
+      {/* ============================= */}
       {/* 순찰 상세 */}
+      {/* ============================= */}
 
       {page ===
         "patrolDetail" &&
@@ -506,6 +604,7 @@ function App() {
             patrol={
               selectedPatrol
             }
+
             onBack={() =>
               setPage("main")
             }
