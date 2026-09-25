@@ -3406,3 +3406,85 @@ button {
     height: 330px;
   }
 }
+/* =========================================================
+   자율주행 작업장 구역 커스텀 디자인 (기존 디자인 덮어쓰기)
+========================================================= */
+
+/* 1. 통로 */
+.zone-type-passage {
+  background-color: #e0e0e0 !important;
+  background-image: repeating-linear-gradient(0deg, #ffffff, #ffffff 15px, transparent 15px, transparent 30px) !important;
+  background-size: 4px 100% !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  border: 2px solid #bdbdbd !important;
+}
+
+/* 2. 작업구역 */
+.zone-type-work_area {
+  background-color: rgba(173, 216, 230, 0.4) !important; 
+  border: 2px solid #4682b4 !important;
+}
+
+/* 3. 창고 (구석 상자 배치) */
+.zone-type-storage {
+  background-color: #fdf5e6 !important; 
+  border: 2px solid #8b4513 !important;
+  position: relative !important;
+}
+.zone-type-storage::after {
+  content: "📦 📦\A 📦"; 
+  white-space: pre; 
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  font-size: 24px;
+  line-height: 1.1;
+  text-align: right;
+  opacity: 0.8; 
+}
+
+/* 4. 위험구역 */
+.zone-type-hazard_area {
+  background-color: rgba(255, 235, 59, 0.8) !important;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 15px,
+    rgba(0, 0, 0, 0.15) 15px,
+    rgba(0, 0, 0, 0.15) 30px
+  ) !important;
+  border: 2px solid #fbc02d !important;
+}
+
+/* 5. 접근제한구역 (해골 경고) */
+.zone-type-restricted_area {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #b71c1c,
+    #b71c1c 15px,
+    #212121 15px,
+    #212121 30px
+  ) !important;
+  border: 3px solid #000000 !important;
+  position: relative !important;
+}
+.zone-type-restricted_area::after {
+  content: "☠️"; 
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 60px;
+  filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.8));
+}
+
+/* 구역 내부 텍스트(이름, 종류) 완전히 숨기기 */
+.saved-zone-name,
+.saved-zone-type,
+.setup-semantic-zone-name,
+.setup-semantic-zone-type,
+.main-semantic-zone-name,
+.main-semantic-zone-type {
+  display: none !important;
+}
