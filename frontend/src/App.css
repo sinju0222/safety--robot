@@ -3410,14 +3410,39 @@ button {
    자율주행 작업장 구역 커스텀 디자인 (기존 디자인 덮어쓰기)
 ========================================================= */
 
-/* 1. 통로 */
+/* 1. 통로 (비율에 따라 가로/세로 차선 자동 전환) */
 .zone-type-passage {
   background-color: #e0e0e0 !important;
-  background-image: repeating-linear-gradient(0deg, #ffffff, #ffffff 15px, transparent 15px, transparent 30px) !important;
-  background-size: 4px 100% !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
   border: 2px solid #bdbdbd !important;
+  container-type: size !important; /* 스스로의 가로/세로 비율을 측정하도록 지시 */
+}
+
+/* 차선을 그릴 투명한 도화지(가상 요소)를 구역 위에 덮기 */
+.zone-type-passage::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none; /* 클릭 방해 금지 */
+}
+
+/* 가로가 더 긴 경우 (Landscape) -> 가로 차선 */
+@container (orientation: landscape) {
+  .zone-type-passage::before {
+    background-image: repeating-linear-gradient(90deg, #ffffff, #ffffff 15px, transparent 15px, transparent 30px) !important;
+    background-size: 100% 4px !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+  }
+}
+
+/* 세로가 더 길거나 같은 경우 (Portrait) -> 세로 차선 */
+@container (orientation: portrait) {
+  .zone-type-passage::before {
+    background-image: repeating-linear-gradient(0deg, #ffffff, #ffffff 15px, transparent 15px, transparent 30px) !important;
+    background-size: 4px 100% !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+  }
 }
 
 /* 2. 작업구역 */
