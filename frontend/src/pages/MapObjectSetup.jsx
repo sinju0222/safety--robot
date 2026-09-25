@@ -727,7 +727,10 @@ function MapObjectSetup({
                                 )
                               }
                             >
-
+                              <option value="turtlebot">
+                                터틀봇
+                              </option>
+                              
                               <option value="cobot">
                                 협동로봇
                               </option>
