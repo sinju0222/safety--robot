@@ -1176,7 +1176,7 @@ function WorkplaceMain({
                       : "robot-marker"
                   }
                 >
-                  ●
+                  🐢
                 </span>
 
                 {/* ========================= */}
