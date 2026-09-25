@@ -87,15 +87,14 @@ function MapObjectSetup({
 
   const getMarkerIcon = (type) => {
     switch (type) {
+      case "turtlebot":
+        return "🐢";
       case "cobot":
         return "🤖";
-
       case "storage":
         return "📦";
-
       case "equipment":
         return "⚙️";
-
       default:
         return "●";
     }
@@ -109,15 +108,14 @@ function MapObjectSetup({
 
   const getTypeName = (type) => {
     switch (type) {
+      case "turtlebot":
+        return "터틀봇";
       case "cobot":
         return "협동로봇";
-
       case "storage":
         return "적재물";
-
       case "equipment":
         return "고정설비 / 작업대";
-
       default:
         return "기타";
     }
