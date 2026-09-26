@@ -72,6 +72,10 @@ function WorkplaceMain({
     selectedMapObjectId,
     setSelectedMapObjectId,
   ] = useState(null);
+  const [
+    robotPosition,
+    setRobotPosition,
+  ] = useState({ x: 1.0, y: 1.0 });
 
   const mapStatus =
     workplace.map?.status ||
