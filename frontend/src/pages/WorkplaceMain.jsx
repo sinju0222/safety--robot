@@ -102,34 +102,46 @@ function WorkplaceMain({
    * ==========================================
    */
 
+
+
  /*
    * ==========================================
-   * Timer & 시뮬레이션
+   * Timer & 실제 로봇 위치 연동
    * ==========================================
    */
 
- useEffect(() => {
+  useEffect(() => {
     if (
-      patrolStatus !==
-        "running" &&
-      patrolStatus !==
-        "returning"
+      patrolStatus !== "running" &&
+      patrolStatus !== "returning"
     ) {
       return;
     }
 
-    const timer =
-      setInterval(() => {
-        setElapsedTime(
-          (prev) =>
-            prev + 1
-        );
-      }, 1000);
+    const timer = setInterval(() => {
+      setElapsedTime((prev) => prev + 1);
+    }, 1000);
 
-    return () =>
+    // ▼ 백엔드에서 0.5초마다 진짜 로봇 위치를 가져옵니다.
+    const moveInterval = setInterval(async () => {
+      if (patrolStatus === "running") {
+        try {
+          const res = await fetch(`${API_URL}/workplaces/${workplace.id}/robot/position`);
+          if (res.ok) {
+            const pos = await res.json();
+            setRobotPosition({ x: pos.x, y: pos.y }); // 받아온 좌표로 거북이 이동!
+          }
+        } catch (e) {
+          console.error("위치 연동 실패:", e);
+        }
+      }
+    }, 500);
+
+    return () => {
       clearInterval(timer);
-  }, [patrolStatus]);
-  /*
+      clearInterval(moveInterval);
+    };
+  }, [patrolStatus, workplace.id]);
    * ==========================================
    * Formatting
    * ==========================================
