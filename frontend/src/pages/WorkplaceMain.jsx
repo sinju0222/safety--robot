@@ -143,9 +143,7 @@ function WorkplaceMain({
     };
   }, [patrolStatus, workplace.id]);
   
-   * Formatting
-   * ==========================================
-   */
+   
 
   const formatTime = (
     seconds
