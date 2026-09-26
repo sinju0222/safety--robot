@@ -98,6 +98,12 @@ function WorkplaceMain({
    * ==========================================
    */
 
+ /*
+   * ==========================================
+   * Timer & 시뮬레이션
+   * ==========================================
+   */
+
   useEffect(() => {
     if (
       patrolStatus !==
@@ -108,6 +114,7 @@ function WorkplaceMain({
       return;
     }
 
+    // 1. 순찰 시간 타이머
     const timer =
       setInterval(() => {
         setElapsedTime(
@@ -116,8 +123,25 @@ function WorkplaceMain({
         );
       }, 1000);
 
-    return () =>
+    // 2. [새로 추가된 로직] 가상 주행 경로 및 이동 엔진
+    const mockPath = [
+      { x: 1.0, y: 1.0 }, { x: 1.5, y: 1.0 }, { x: 2.0, y: 1.2 },
+      { x: 2.5, y: 1.5 }, { x: 3.0, y: 2.0 }, { x: 3.5, y: 2.8 },
+      { x: 3.8, y: 3.5 }, { x: 4.2, y: 4.0 }, { x: 4.5, y: 4.5 }
+    ];
+
+    let step = 0;
+    const moveInterval = setInterval(() => {
+      if (patrolStatus === "running" && step < mockPath.length) {
+        setRobotPosition(mockPath[step]);
+        step++;
+      }
+    }, 500);
+
+    return () => {
       clearInterval(timer);
+      clearInterval(moveInterval);
+    };
   }, [patrolStatus]);
 
   /*
@@ -1168,13 +1192,15 @@ function WorkplaceMain({
                 {/* ROBOT */}
                 {/* ========================= */}
 
-                <span
+               <span
                   className={
                     patrolStatus ===
                     "returning"
                       ? "robot-marker robot-returning"
                       : "robot-marker"
                   }
+                  // ▼ [추가된 부분] 이 style 속성이 거북이의 실시간 위치를 갱신합니다.
+                  style={convertMapPosition(robotPosition)}
                 >
                   🐢
                 </span>
