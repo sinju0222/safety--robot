@@ -1569,3 +1569,38 @@ def get_patrol_detail(
         )
 
     return patrol
+    # =========================================================
+# Robot Position - 실시간 위치 통신
+# =========================================================
+
+# 브릿지에서 들어오는 데이터 형태
+class RobotPositionPayload(BaseModel):
+    robot_id: str
+    type: str
+    position: Position
+
+# 로봇 위치를 임시로 저장할 공간 (workplace_id를 키로 사용)
+robot_positions: Dict[int, Position] = {}
+
+@app.post("/workplaces/{workplace_id}/robot/position")
+def update_robot_position(
+    workplace_id: int,
+    payload: RobotPositionPayload,
+):
+    # 1. 3번 터미널(bridge.py)에서 쏜 데이터를 받아서 저장합니다.
+    workplace = get_workplace(workplace_id)
+    robot_positions[workplace_id] = payload.position
+    
+    print(f"📍 로봇 수신 완료: X={payload.position.x}, Y={payload.position.y}")
+    return {"status": "success", "position": payload.position}
+
+@app.get("/workplaces/{workplace_id}/robot/position")
+def get_robot_position(
+    workplace_id: int,
+):
+    # 2. 리액트(웹)가 거북이 위치를 물어보면 저장된 값을 대답해 줍니다.
+    workplace = get_workplace(workplace_id)
+    
+    # 아직 저장된 값이 없으면 시작 위치(1.0, 1.0)를 줍니다.
+    current_pos = robot_positions.get(workplace_id, Position(x=1.0, y=1.0))
+    return current_pos
