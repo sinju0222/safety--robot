@@ -142,7 +142,7 @@ function WorkplaceMain({
       clearInterval(moveInterval);
     };
   }, [patrolStatus, workplace.id]);
-   * ==========================================
+  
    * Formatting
    * ==========================================
    */
