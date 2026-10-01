@@ -3,7 +3,7 @@ import {
   useState,
 } from "react";
 
-import PixelGridMap from "./PixelGridMap";
+import PixelGridMap from "../PixelGridMap";
 const API_URL =
   "http://127.0.0.1:8000";
 
@@ -897,335 +897,135 @@ function WorkplaceMain({
             </div>
           )}
 
-          {/* ============================= */}
-          {/* READY */}
-          {/* ============================= */}
-
-          {mapStatus ===
-            "ready" && (
-            <div className="map-container">
-
-              <div
-                className="map-placeholder"
-                onClick={() =>
-                  setSelectedMapObjectId(
-                    null
-                  )
-                }
-              >
-
-                {/* ========================= */}
-                {/* SEMANTIC ZONES */}
-                {/* ========================= */}
-
-                {mapZones.map(
-                  (zone) => (
-                    <div
-                      key={
-                        zone.id
-                      }
-                      className={
-                        `main-semantic-zone ${getZoneClass(
-                          zone.type
-                        )}`
-                      }
-                      style={
-                        convertZoneBounds(
-                          zone.bounds
-                        )
-                      }
-                    >
-
-                      <span className="main-semantic-zone-name">
-                        {zone.name}
-                      </span>
-
-                      <span className="main-semantic-zone-type">
-                        {getZoneTypeName(
-                          zone.type
-                        )}
-                      </span>
-
-                    </div>
-                  )
-                )}
-
-                {/* ========================= */}
-                {/* WALLS */}
-                {/* ========================= */}
-
-                <div className="wall wall-1" />
-
-                <div className="wall wall-2" />
-
-                <div className="wall wall-3" />
-
-                {/* ========================= */}
-                {/* BASELINE OBJECTS */}
-                {/* ========================= */}
-
-                {mapObjects.map(
-                  (object) => {
-                    const position =
-                      convertMapPosition(
-                        object.position
-                      );
-
-                    const isSelected =
-                      selectedMapObjectId ===
-                      object.id;
-
-                    const openBelow =
-                      shouldOpenBelow(
-                        object
-                      );
-
-                    const objectZone =
-                      findZoneByPosition(
-                        object.position
-                      );
-
-                    return (
-                      <div
-                        key={
-                          object.id
-                        }
-                        className="baseline-object-wrapper"
-                        style={
-                          position
-                        }
-                        onClick={(
-                          event
-                        ) =>
-                          event.stopPropagation()
-                        }
-                      >
-
-                        {/* MARKER */}
-
-                        <button
-                          type="button"
-                          className={
-                            isSelected
-                              ? "baseline-object-marker selected"
-                              : "baseline-object-marker"
-                          }
-                          onClick={() =>
-                            setSelectedMapObjectId(
-                              isSelected
-                                ? null
-                                : object.id
-                            )
-                          }
-                        >
-
-                          <span className="baseline-object-icon">
-                            {getObjectIcon(
-                              object.type
-                            )}
-                          </span>
-
-                          <span className="baseline-object-name">
-                            {
-                              object.name
-                            }
-                          </span>
-
-                        </button>
-
-                        {/* ================= */}
-                        {/* POPOVER */}
-                        {/* ================= */}
-
-                        {isSelected &&
-                          selectedMapObject && (
-                            <div
-                              className={
-                                openBelow
-                                  ? "baseline-object-popover baseline-popover-below"
-                                  : "baseline-object-popover baseline-popover-above"
-                              }
-                            >
-
-                              <div className="baseline-popover-arrow" />
-
-                              <div className="baseline-popover-header">
-
-                                <strong>
-                                  {
-                                    selectedMapObject.name
-                                  }
-                                </strong>
-
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setSelectedMapObjectId(
-                                      null
-                                    )
-                                  }
-                                >
-                                  ×
-                                </button>
-
-                              </div>
-
-                              {/* 종류 */}
-
-                              <div className="baseline-info-row">
-
-                                <span>
-                                  종류
-                                </span>
-
-                                <strong>
-                                  {getObjectTypeName(
-                                    selectedMapObject.type
-                                  )}
-                                </strong>
-
-                              </div>
-
-                              {/* 탐지 */}
-
-                              <div className="baseline-info-row">
-
-                                <span>
-                                  탐지
-                                </span>
-
-                                <strong>
-                                  {
-                                    selectedMapObject.detectedClass
-                                  }
-                                </strong>
-
-                              </div>
-
-                              {/* 구역 */}
-
-                              <div className="baseline-info-row">
-
-                                <span>
-                                  구역
-                                </span>
-
-                                <strong>
-                                  {objectZone
-                                    ? objectZone.name
-                                    : "구역 외부"}
-                                </strong>
-
-                              </div>
-
-                              {/* 공간 유형 */}
-
-                              <div className="baseline-info-row">
-
-                                <span>
-                                  공간 유형
-                                </span>
-
-                                <strong>
-                                  {objectZone
-                                    ? getZoneTypeName(
-                                        objectZone.type
-                                      )
-                                    : "미지정"}
-                                </strong>
-
-                              </div>
-
-                              {/* 위치 */}
-
-                              <div className="baseline-info-row">
-
-                                <span>
-                                  위치
-                                </span>
-
-                                <strong>
-                                  X{" "}
-                                  {
-                                    selectedMapObject
-                                      .position
-                                      .x
-                                  }
-                                  {" / "}
-                                  Y{" "}
-                                  {
-                                    selectedMapObject
-                                      .position
-                                      .y
-                                  }
-                                </strong>
-
-                              </div>
-
-                              {/* 상태 */}
-
-                              <div className="baseline-info-row">
-
-                                <span>
-                                  상태
-                                </span>
-
-                                <strong>
-                                  기준 사물
-                                </strong>
-
-                              </div>
-
-                            </div>
-                          )}
-
-                      </div>
-                    );
-                  }
-                )}
-
-                {/* ========================= */}
-                {/* ROBOT */}
-                {/* ========================= */}
-
-               <span
-                  className={
-                    patrolStatus ===
-                    "returning"
-                      ? "robot-marker robot-returning"
-                      : "robot-marker"
-                  }
-                  // ▼ [추가된 부분] 이 style 속성이 거북이의 실시간 위치를 갱신합니다.
-                  style={convertMapPosition(robotPosition)}
-                >
-                  🐢
-                </span>
-
-                {/* ========================= */}
-                {/* HOME */}
-                {/* ========================= */}
-
-                <span className="home-marker">
-                  H
-                </span>
-
-                <span className="map-label">
-                  작업장 Semantic Map
-                </span>
-
-                {patrolStatus ===
-                  "returning" && (
-                  <div className="map-return-status">
-                    ↩ Home 복귀 중
-                  </div>
-                )}
-
-              </div>
+         {/* ============================= */}
+{/* READY */}
+{/* ============================= */}
+
+{mapStatus === "ready" && (
+  <div
+    className="map-container"
+    style={{
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "#f5f5f5",
+    }}
+  >
+
+    {/* 지도 + 구역을 정확히 겹치는 영역 */}
+    <div
+      style={{
+        position: "relative",
+        width: "744px",
+        height: "660px",
+      }}
+    >
+
+      {/* 실시간 환경지도 */}
+      <PixelGridMap />
+
+      {/* 저장된 구역 표시 */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
+        }}
+      >
+
+        {mapZones.map((zone) => {
+
+          if (!zone.bounds) {
+            return null;
+          }
+
+          const minX = Math.min(
+            zone.bounds.x1,
+            zone.bounds.x2
+          );
+
+          const maxX = Math.max(
+            zone.bounds.x1,
+            zone.bounds.x2
+          );
+
+          const minY = Math.min(
+            zone.bounds.y1,
+            zone.bounds.y2
+          );
+
+          const maxY = Math.max(
+            zone.bounds.y1,
+            zone.bounds.y2
+          );
+
+          return (
+            <div
+              key={zone.id}
+              style={{
+                position: "absolute",
+
+                left:
+                  `${(minX / 124) * 100}%`,
+
+                top:
+                  `${((110 - maxY) / 110) * 100}%`,
+
+                width:
+                  `${((maxX - minX) / 124) * 100}%`,
+
+                height:
+                  `${((maxY - minY) / 110) * 100}%`,
+
+                border:
+                  "2px solid rgba(0, 150, 255, 0.9)",
+
+                backgroundColor:
+                  "rgba(0, 150, 255, 0.15)",
+
+                boxSizing:
+                  "border-box",
+
+                display:
+                  "flex",
+
+                alignItems:
+                  "center",
+
+                justifyContent:
+                  "center",
+
+                color:
+                  "#0066aa",
 
+                fontWeight:
+                  "bold",
+
+                fontSize:
+                  "14px",
+
+                pointerEvents:
+                  "none",
+              }}
+            >
+              {zone.name}
             </div>
-          )}
+          );
 
-        </section>
+        })}
+
+      </div>
+
+    </div>
+
+  </div>
+)}
+
+                
+          </section>
 
         {/* ================================= */}
         {/* DASHBOARD */}

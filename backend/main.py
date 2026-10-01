@@ -1,19 +1,34 @@
+import asyncio # 👈 추가
+from fastapi.middleware.cors import CORSMiddleware
+import json    # 👈 추가
+from fastapi import WebSocket
+from websocket_server import send_map
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-
-
-# =========================================================
-# FastAPI
-# =========================================================
 
 app = FastAPI(
     title="Safety Robot API",
     version="0.5.0",
 )
+# =========================================================
+# FastAPI
+# =========================================================
+
+@app.websocket("/ws/map")
+async def websocket_map(websocket: WebSocket):
+
+    print("WebSocket connection request")
+
+    await websocket.accept()
+
+    print("WebSocket accepted")
+
+    await send_map(websocket)
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -1579,28 +1594,41 @@ class RobotPositionPayload(BaseModel):
     type: str
     position: Position
 
-# 로봇 위치를 임시로 저장할 공간 (workplace_id를 키로 사용)
-robot_positions: Dict[int, Position] = {}
+    # =========================================================
+# Robot Position - 실시간 위치 통신 (WebSocket 적용)
+# =========================================================
 
-@app.post("/workplaces/{workplace_id}/robot/position")
-def update_robot_position(
-    workplace_id: int,
-    payload: RobotPositionPayload,
-):
-    # 1. 3번 터미널(bridge.py)에서 쏜 데이터를 받아서 저장합니다.
-    workplace = get_workplace(workplace_id)
-    robot_positions[workplace_id] = payload.position
+@app.websocket("/ws/workplaces/{workplace_id}/robot")
+async def websocket_robot_endpoint(websocket: WebSocket, workplace_id: int):
+    await websocket.accept()
+    print(f"✅ 구역 설정 맵 웹소켓 연결 성공! (작업장 ID: {workplace_id})")
     
-    print(f"📍 로봇 수신 완료: X={payload.position.x}, Y={payload.position.y}")
-    return {"status": "success", "position": payload.position}
-
-@app.get("/workplaces/{workplace_id}/robot/position")
-def get_robot_position(
-    workplace_id: int,
-):
-    # 2. 리액트(웹)가 거북이 위치를 물어보면 저장된 값을 대답해 줍니다.
-    workplace = get_workplace(workplace_id)
-    
-    # 아직 저장된 값이 없으면 시작 위치(1.0, 1.0)를 줍니다.
-    current_pos = robot_positions.get(workplace_id, Position(x=1.0, y=1.0))
-    return current_pos
+    try:
+        # 기본 그리드 맵 데이터 생성 (200x200 크기, 기본은 빈 공간 0)
+        width, height = 200, 200
+        mock_map_data = [0] * (width * height) 
+        
+        # 필요한 장애물(벽) 위치에만 100 지정 (예시 ㄱ자 벽)
+        for x in range(50, 150):
+            mock_map_data[50 * width + x] = 100  # 가로 벽
+        for y in range(50, 120):
+            mock_map_data[y * width + 50] = 100  # 세로 벽
+        
+        map_payload = {
+            "type": "map",
+            "width": width,
+            "height": height,
+            "resolution": 0.05,
+            "data": mock_map_data
+        }
+        
+        # 맵 데이터를 웹소켓으로 전송
+        await websocket.send_text(json.dumps(map_payload))
+        print("🗺️ 기본 그리드 맵 데이터 전송 완료")
+        
+        # 구역 설정 화면에서는 로봇이 움직일 필요가 없으므로 연결을 유지한 채 대기합니다.
+        while True:
+            await asyncio.sleep(1)
+            
+    except WebSocketDisconnect:
+        print(f"❌ 웹소켓 연결 끊김 (작업장 ID: {workplace_id})")

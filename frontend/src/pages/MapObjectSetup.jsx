@@ -1,8 +1,11 @@
 import { useState } from "react";
+import PixelGridMap from "../PixelGridMap";
 
 const API_BASE = "http://127.0.0.1:8000";
 
 const MAP_SIZE = 6;
+const GRID_WIDTH = 124;
+const GRID_HEIGHT = 110;
 
 const ZONE_TYPES = [
   {
@@ -162,67 +165,68 @@ function MapObjectSetup({
    * ==========================================
    */
 
-  const convertZoneBounds = (
-    bounds
-  ) => {
-    if (!bounds) {
-      return {};
-    }
+ const convertZoneBounds = (
+  bounds
+) => {
 
-    const minX =
-      Math.min(
-        bounds.x1,
-        bounds.x2
-      );
+  if (!bounds) {
+    return {};
+  }
 
-    const maxX =
-      Math.max(
-        bounds.x1,
-        bounds.x2
-      );
+  const minX =
+    Math.min(
+      bounds.x1,
+      bounds.x2
+    );
 
-    const minY =
-      Math.min(
-        bounds.y1,
-        bounds.y2
-      );
+  const maxX =
+    Math.max(
+      bounds.x1,
+      bounds.x2
+    );
 
-    const maxY =
-      Math.max(
-        bounds.y1,
-        bounds.y2
-      );
+  const minY =
+    Math.min(
+      bounds.y1,
+      bounds.y2
+    );
 
-    return {
-      left:
-        `${(
-          minX /
-          MAP_SIZE
-        ) * 100}%`,
+  const maxY =
+    Math.max(
+      bounds.y1,
+      bounds.y2
+    );
 
-      top:
-        `${(
-          1 -
-          maxY /
-            MAP_SIZE
-        ) * 100}%`,
+  return {
 
-      width:
-        `${(
-          (maxX -
-            minX) /
-          MAP_SIZE
-        ) * 100}%`,
+    left:
+      `${(
+        minX /
+        GRID_WIDTH
+      ) * 100}%`,
 
-      height:
-        `${(
-          (maxY -
-            minY) /
-          MAP_SIZE
-        ) * 100}%`,
-    };
+    top:
+      `${(
+        1 -
+        maxY /
+        GRID_HEIGHT
+      ) * 100}%`,
+
+    width:
+      `${(
+        (maxX -
+          minX) /
+        GRID_WIDTH
+      ) * 100}%`,
+
+    height:
+      `${(
+        (maxY -
+          minY) /
+        GRID_HEIGHT
+      ) * 100}%`,
   };
-
+};
   /*
    * ==========================================
    * SLAM 좌표 → 화면 좌표
@@ -282,12 +286,19 @@ function MapObjectSetup({
       return null;
     }
 
-    const x =
-      object.position.x;
+  const x =
+  (
+    object.position.x /
+    MAP_SIZE
+  ) *
+  GRID_WIDTH;
 
-    const y =
-      object.position.y;
-
+const y =
+  (
+    object.position.y /
+    MAP_SIZE
+  ) *
+  GRID_HEIGHT;
     return (
       zones.find((zone) => {
         const bounds =
@@ -508,9 +519,9 @@ function MapObjectSetup({
             }
           >
 
-            {/* GRID */}
-
-            <div className="setup-grid" />
+           <div className="setup-live-map">
+  <PixelGridMap />
+</div>
 
             {/* ================================= */}
             {/* SEMANTIC ZONES */}
@@ -544,15 +555,7 @@ function MapObjectSetup({
               </div>
             ))}
 
-            {/* ================================= */}
-            {/* MOCK WALLS */}
-            {/* ================================= */}
-
-            <div className="setup-wall setup-wall-1" />
-
-            <div className="setup-wall setup-wall-2" />
-
-            <div className="setup-wall setup-wall-3" />
+            
 
             {/* ================================= */}
             {/* HOME */}

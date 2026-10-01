@@ -28,3 +28,4 @@ log/
 # Database
 *.db
 *.sqlite3
+.vs/
