@@ -1,3 +1,5 @@
+import math
+
 import rclpy
 
 from rclpy.node import Node
@@ -8,6 +10,7 @@ from nav_msgs.msg import OccupancyGrid
 from tf2_ros import Buffer, TransformListener
 
 from coordinate_converter import scan_to_map_points
+from config import CONFIRM_COUNT, POSITION_TOLERANCE
 from baseline_manager import BaselineManager
 from cluster_manager import cluster_points, get_center
 from change_detector import detect_change
@@ -67,16 +70,11 @@ class ChangeDetectorNode(Node):
 
         # ==================================================
         # Detection State Machine
-        #
-        # 같은 위치의 변화가 3번 연속 감지되어야
-        # 실제 변화로 확정
         # ==================================================
 
-        self.state_machine = (
-            DetectionStateMachine(
-                confirm_count=3,
-                position_threshold=0.3
-            )
+        self.state_machine = DetectionStateMachine(
+            confirm_count=CONFIRM_COUNT,
+            position_threshold=POSITION_TOLERANCE
         )
 
         # ==================================================
@@ -134,8 +132,6 @@ class ChangeDetectorNode(Node):
 
     def map_callback(self, msg):
 
-        # 이미 기준 지도를 저장했다면
-        # 이후 /map 업데이트는 무시
         if self.baseline.map_ready:
             return
 
@@ -169,13 +165,88 @@ class ChangeDetectorNode(Node):
         )
 
     # ======================================================
+    # Robot Pose
+    # ======================================================
+
+    def get_robot_pose(self):
+        """
+        TF에서 map 기준 로봇의
+        x, y, yaw를 가져옵니다.
+        """
+
+        try:
+
+            transform = (
+                self.tf_buffer.lookup_transform(
+                    "map",
+                    "base_link",
+                    Time()
+                )
+            )
+
+        except Exception as e:
+
+            self.get_logger().warning(
+                f"Robot pose unavailable: {e}"
+            )
+
+            return None
+
+        # -----------------------------------------
+        # 위치
+        # -----------------------------------------
+
+        translation = (
+            transform.transform.translation
+        )
+
+        x = float(
+            translation.x
+        )
+
+        y = float(
+            translation.y
+        )
+
+        # -----------------------------------------
+        # 방향
+        # -----------------------------------------
+
+        rotation = (
+            transform.transform.rotation
+        )
+
+        qx = rotation.x
+        qy = rotation.y
+        qz = rotation.z
+        qw = rotation.w
+
+        # Quaternion -> Yaw
+        yaw = math.atan2(
+            2.0 * (
+                qw * qz
+                + qx * qy
+            ),
+            1.0 - 2.0 * (
+                qy * qy
+                + qz * qz
+            )
+        )
+
+        return {
+            "x": x,
+            "y": y,
+            "yaw": yaw
+        }
+
+    # ======================================================
     # LiDAR
     # ======================================================
 
     def scan_callback(self, scan_msg):
 
         # --------------------------------------------------
-        # 처리 중이면 새로운 Scan 이벤트 처리 안 함
+        # 처리 중이면 새로운 Scan 처리 안 함
         # --------------------------------------------------
 
         state = (
@@ -201,14 +272,16 @@ class ChangeDetectorNode(Node):
 
             return
 
+        # --------------------------------------------------
+        # LiDAR frame
+        # --------------------------------------------------
+
         lidar_frame = (
             scan_msg.header.frame_id
         )
 
         # --------------------------------------------------
         # TF 조회
-        #
-        # LiDAR 좌표계 → map 좌표계
         # --------------------------------------------------
 
         try:
@@ -230,7 +303,7 @@ class ChangeDetectorNode(Node):
             return
 
         # --------------------------------------------------
-        # LaserScan → map 좌표
+        # LaserScan -> map 좌표
         # --------------------------------------------------
 
         lidar_points = (
@@ -246,12 +319,8 @@ class ChangeDetectorNode(Node):
         # --------------------------------------------------
         # 기준 지도와 비교
         #
-        # 기준 지도 = FREE
-        # 현재 LiDAR = 물체 있음
-        #
-        # 0 → 1
-        #
-        # 현재 단계에서는 ADDED 변화 탐지
+        # 기준 지도에서 FREE였던 위치에
+        # 현재 LiDAR 장애물이 나타났는지 확인
         # --------------------------------------------------
 
         changed_points = []
@@ -273,8 +342,6 @@ class ChangeDetectorNode(Node):
 
         if not changed_points:
 
-            # 확인 중이던 변화가 있었는데
-            # 다음 Scan에서 사라졌다면 취소
             if (
                 self.state_machine.get_state()
                 == DetectionState.CONFIRMING
@@ -308,11 +375,15 @@ class ChangeDetectorNode(Node):
         for cluster in clusters:
 
             if len(cluster) >= 3:
+
                 valid_clusters.append(
                     cluster
                 )
 
+        # --------------------------------------------------
         # 유효한 변화 없음
+        # --------------------------------------------------
+
         if not valid_clusters:
 
             if (
@@ -327,10 +398,7 @@ class ChangeDetectorNode(Node):
             return
 
         # --------------------------------------------------
-        # 현재 버전에서는 한 번에
-        # 하나의 변화 영역만 추적
-        #
-        # 가장 큰 Cluster를 우선 처리
+        # 가장 큰 변화 영역 선택
         # --------------------------------------------------
 
         largest_cluster = max(
@@ -350,9 +418,6 @@ class ChangeDetectorNode(Node):
 
         # --------------------------------------------------
         # Change Detector
-        #
-        # 기준 FREE(0)
-        # 현재 물체 존재(1)
         # --------------------------------------------------
 
         change = detect_change(
@@ -415,10 +480,9 @@ class ChangeDetectorNode(Node):
                 )
             )
 
-            # ------------------------------------------------
-            # 같은 변화가 아니라면
-            # State Machine이 MONITORING으로 복귀
-            # ------------------------------------------------
+            # ----------------------------------------------
+            # 아직 확정되지 않음
+            # ----------------------------------------------
 
             if not confirmed:
 
@@ -435,9 +499,9 @@ class ChangeDetectorNode(Node):
 
                 return
 
-            # ------------------------------------------------
-            # 3회 연속 확인 완료
-            # ------------------------------------------------
+            # ----------------------------------------------
+            # 변화 확정
+            # ----------------------------------------------
 
             self.current_change = change
 
@@ -489,8 +553,6 @@ class ChangeDetectorNode(Node):
                 "Camera frame unavailable"
             )
 
-            # 촬영 실패 시
-            # 현재 이벤트 처리 취소
             self.state_machine.reset()
 
             self.current_change = None
@@ -502,7 +564,7 @@ class ChangeDetectorNode(Node):
         )
 
         # --------------------------------------------------
-        # CAPTURING → ANALYZING
+        # CAPTURING -> ANALYZING
         # --------------------------------------------------
 
         self.state_machine.capture_completed()
@@ -545,6 +607,7 @@ class ChangeDetectorNode(Node):
             for obj in detected_objects:
 
                 label = obj["label"]
+
                 confidence = (
                     obj["confidence"]
                 )
@@ -569,19 +632,63 @@ class ChangeDetectorNode(Node):
             )
 
         # --------------------------------------------------
-        # ANALYZING → PROCESSING
+        # ANALYZING -> PROCESSING
         # --------------------------------------------------
 
         self.state_machine.analysis_completed()
 
         # ==================================================
+        # Robot Pose
+        # ==================================================
+
+        robot_pose = (
+            self.get_robot_pose()
+        )
+
+        if robot_pose is None:
+
+            self.get_logger().warning(
+                "Robot pose unavailable. "
+                "Event will not be created."
+            )
+
+            self.state_machine.reset()
+
+            self.current_change = None
+
+            return
+
+        self.get_logger().info(
+            f"Robot pose: "
+            f"x={robot_pose['x']:.3f}, "
+            f"y={robot_pose['y']:.3f}, "
+            f"yaw={robot_pose['yaw']:.3f}"
+        )
+
+        # ==================================================
         # Event 생성
         # ==================================================
 
-        event = create_event(
-            self.current_change,
-            detected_objects
-        )
+        try:
+
+            event = create_event(
+                self.current_change,
+                detected_objects,
+                image_path,
+                robot_pose,
+            )
+
+        except Exception as e:
+
+            self.get_logger().error(
+                f"Event creation failed: {e}"
+            )
+
+            self.state_machine.reset()
+
+            self.current_change = None
+
+            return
 
         self.get_logger().info(
             f"EVENT CREATED: {event}"
@@ -590,19 +697,11 @@ class ChangeDetectorNode(Node):
         # ==================================================
         # TODO
         #
-        # 다음 단계에서 여기에
-        # FastAPI 서버 전송을 연결
-        #
-        # Pi → Mac AI Server
-        #
-        # 예:
-        #
-        # send_event(event, image_path)
-        #
+        # 다음 단계에서 FastAPI 서버 전송 연결
         # ==================================================
 
         # --------------------------------------------------
-        # PROCESSING → MONITORING
+        # PROCESSING -> MONITORING
         # --------------------------------------------------
 
         self.state_machine.processing_completed()
@@ -640,4 +739,5 @@ def main(args=None):
 
 
 if __name__ == "__main__":
+
     main()
