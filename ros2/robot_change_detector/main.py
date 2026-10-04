@@ -1,7 +1,13 @@
 import math
 
 import rclpy
-
+from rclpy.qos import (
+    QoSProfile,
+    ReliabilityPolicy,
+    DurabilityPolicy,
+    HistoryPolicy,
+    qos_profile_sensor_data,
+)
 from rclpy.node import Node
 from rclpy.time import Time
 
@@ -37,7 +43,7 @@ class ChangeDetectorNode(Node):
         # ==================================================
 
         self.baseline = BaselineManager(
-            "data/baseline.json"
+           
         )
 
         # ==================================================
@@ -86,13 +92,18 @@ class ChangeDetectorNode(Node):
         # ==================================================
         # /map 구독
         # ==================================================
-
+        map_qos = QoSProfile(  
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1,
+        )
         self.map_subscription = (
             self.create_subscription(
                 OccupancyGrid,
                 "/map",
                 self.map_callback,
-                10
+                map_qos
             )
         )
 
@@ -105,7 +116,7 @@ class ChangeDetectorNode(Node):
                 LaserScan,
                 "/scan",
                 self.scan_callback,
-                10
+                qos_profile_sensor_data
             )
         )
 
@@ -118,7 +129,7 @@ class ChangeDetectorNode(Node):
                 Image,
                 "/camera/camera/color/image_raw",
                 self.camera_callback,
-                10
+                qos_profile_sensor_data
             )
         )
 
