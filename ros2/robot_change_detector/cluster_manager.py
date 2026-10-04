@@ -4,42 +4,36 @@ from config import CLUSTER_DISTANCE
 
 
 def distance(a, b):
-    return math.sqrt(
-        (a[0] - b[0]) ** 2 +
-        (a[1] - b[1]) ** 2
-    )
+    return math.hypot(a[0] - b[0], a[1] - b[1])
 
 
 def cluster_points(points):
-
+    """
+    서로 가까운 변화 포인트를 하나의 cluster로 묶습니다.
+    """
     clusters = []
 
     for point in points:
-
-        added = False
+        matched = None
 
         for cluster in clusters:
-
-            if any(
-                distance(point, existing) <= CLUSTER_DISTANCE
-                for existing in cluster
-            ):
-                cluster.append(point)
-                added = True
+            if any(distance(point, p) <= CLUSTER_DISTANCE for p in cluster):
+                matched = cluster
                 break
 
-        if not added:
+        if matched is None:
             clusters.append([point])
+        else:
+            matched.append(point)
 
     return clusters
 
 
 def get_center(cluster):
+    if not cluster:
+        return None
 
-    x = sum(p[0] for p in cluster) / len(cluster)
-    y = sum(p[1] for p in cluster) / len(cluster)
+    x = sum(point[0] for point in cluster) / len(cluster)
+    y = sum(point[1] for point in cluster) / len(cluster)
 
-    return (
-        round(x, 3),
-        round(y, 3)
-    )
+    return (round(x, 3), round(y, 3))

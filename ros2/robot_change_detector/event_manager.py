@@ -1,98 +1,86 @@
+import json
 from datetime import datetime
 from pathlib import Path
 
 
 def create_event(
     change,
-    detected_objects=None,
-    image_path=None,
-    robot_pose=None,
+    detected_objects,
+    image_path,
+    robot_pose,
+    save_dir="events",
 ):
-    """
-    변화 감지 결과를 최종 Event JSON 형식으로 변환한다.
-
-    최종 형식:
-
-    {
-        "event_id": "evt_001",
-        "timestamp": "2026-10-01T19:55:21+09:00",
-
-        "change": {
-            "type": "ADDED",
-            "x": 3.21,
-            "y": 5.43
-        },
-
-        "robot": {
-            "x": 2.84,
-            "y": 4.91,
-            "yaw": 1.57
-        },
-
-        "image": "change_001.jpg"
-    }
-    """
-
     if robot_pose is None:
         raise ValueError(
-            "robot_pose가 필요합니다."
+            "robot_pose is required"
         )
 
     if image_path is None:
         raise ValueError(
-            "image_path가 필요합니다."
+            "image_path is required"
         )
 
-    # 현재 시간
     now = datetime.now().astimezone()
 
-    # 이벤트 ID
     event_id = (
         "evt_"
-        + now.strftime(
-            "%Y%m%d_%H%M%S_%f"
-        )
+        + now.strftime("%Y%m%d_%H%M%S_%f")
     )
 
-    # 이미지 파일 이름만 사용
-    image_name = Path(
-        image_path
-    ).name
-
-    # 최종 Event
     event = {
-
         "event_id": event_id,
-
         "timestamp": now.isoformat(),
-
         "change": {
             "type": change["event_type"],
-
-            "x": float(
-                change["position"]["x"]
+            "x": round(
+                float(change["position"]["x"]),
+                3,
             ),
-
-            "y": float(
-                change["position"]["y"]
+            "y": round(
+                float(change["position"]["y"]),
+                3,
             ),
         },
-
         "robot": {
-            "x": float(
-                robot_pose["x"]
+            "x": round(
+                float(robot_pose["x"]),
+                3,
             ),
-
-            "y": float(
-                robot_pose["y"]
+            "y": round(
+                float(robot_pose["y"]),
+                3,
             ),
-
-            "yaw": float(
-                robot_pose["yaw"]
+            "yaw": round(
+                float(robot_pose["yaw"]),
+                3,
             ),
         },
-
-        "image": image_name,
+        "image": Path(image_path).name,
+        "objects": detected_objects or [],
     }
+
+    output_dir = Path(
+        save_dir
+    ).expanduser()
+    output_dir.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    json_path = (
+        output_dir
+        / f"{event_id}.json"
+    )
+
+    with json_path.open(
+        "w",
+        encoding="utf-8",
+    ) as file:
+        json.dump(
+            event,
+            file,
+            ensure_ascii=False,
+            indent=2,
+        )
 
     return event

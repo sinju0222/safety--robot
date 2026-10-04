@@ -1,49 +1,95 @@
+import json
 import math
+from pathlib import Path
 
 import rclpy
+from rclpy.duration import Duration
+from rclpy.node import Node
 from rclpy.qos import (
-    QoSProfile,
-    ReliabilityPolicy,
     DurabilityPolicy,
     HistoryPolicy,
+    QoSProfile,
+    ReliabilityPolicy,
     qos_profile_sensor_data,
 )
-from rclpy.node import Node
 from rclpy.time import Time
 
-from sensor_msgs.msg import LaserScan, Image
 from nav_msgs.msg import OccupancyGrid
+from sensor_msgs.msg import Image, LaserScan
 from tf2_ros import Buffer, TransformListener
 
-from coordinate_converter import scan_to_map_points
-from config import CONFIRM_COUNT, POSITION_TOLERANCE
 from baseline_manager import BaselineManager
-from cluster_manager import cluster_points, get_center
-from change_detector import detect_change
 from camera_manager import CameraManager
-from yolo_detector import YoloDetector
+from change_detector import detect_change
+from cluster_manager import (
+    cluster_points,
+    distance,
+    get_center,
+)
+from config import (
+    ADDED_CONFIRM_COUNT,
+    ADDED_MIN_CLUSTER_POINTS,
+    BASELINE_PADDING_CELLS,
+    BASE_FRAME,
+    MAP_FRAME,
+    MAP_TOPIC,
+    POSITION_TOLERANCE,
+    REMOVED_CONFIRM_COUNT,
+    REMOVED_MIN_CLUSTER_POINTS,
+    RGB_TOPIC,
+    SCAN_TOPIC,
+    YOLO_CONFIDENCE,
+    YOLO_IMAGE_SIZE,
+    YOLO_MAX_DET,
+    YOLO_MODEL_PATH,
+)
 from event_manager import create_event
-
+from scan_observer import build_scan_observation
 from state_machine import (
     DetectionState,
     DetectionStateMachine,
 )
+from yolo_detector import YoloDetector
 
 
 class ChangeDetectorNode(Node):
-
     def __init__(self):
-
         super().__init__(
             "robot_change_detector"
         )
 
         # ==================================================
-        # 기준 데이터
+        # Output
         # ==================================================
 
-        self.baseline = BaselineManager(
-           
+        self.output_dir = (
+            Path.home()
+            / "robot_change_output"
+        )
+        self.capture_dir = (
+            self.output_dir
+            / "captures"
+        )
+        self.event_dir = (
+            self.output_dir
+            / "events"
+        )
+
+        self.capture_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        self.event_dir.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        # ==================================================
+        # Baseline
+        # ==================================================
+
+        self.baseline = (
+            BaselineManager()
         )
 
         # ==================================================
@@ -51,98 +97,157 @@ class ChangeDetectorNode(Node):
         # ==================================================
 
         self.tf_buffer = Buffer()
-
-        self.tf_listener = TransformListener(
-            self.tf_buffer,
-            self
-        )
-
-        # ==================================================
-        # Camera
-        # ==================================================
-
-        self.camera = CameraManager(
-            save_dir="captures"
-        )
-
-        # ==================================================
-        # YOLO
-        # ==================================================
-
-        self.yolo = YoloDetector(
-            model_path="yolo11n.pt",
-            confidence=0.40
-        )
-
-        # ==================================================
-        # Detection State Machine
-        # ==================================================
-
-        self.state_machine = DetectionStateMachine(
-            confirm_count=CONFIRM_COUNT,
-            position_threshold=POSITION_TOLERANCE
-        )
-
-        # ==================================================
-        # 현재 확인 중인 Change
-        # ==================================================
-
-        self.current_change = None
-
-        # ==================================================
-        # /map 구독
-        # ==================================================
-        map_qos = QoSProfile(  
-            reliability=ReliabilityPolicy.RELIABLE,
-            durability=DurabilityPolicy.TRANSIENT_LOCAL,
-            history=HistoryPolicy.KEEP_LAST,
-            depth=1,
-        )
-        self.map_subscription = (
-            self.create_subscription(
-                OccupancyGrid,
-                "/map",
-                self.map_callback,
-                map_qos
+        self.tf_listener = (
+            TransformListener(
+                self.tf_buffer,
+                self,
             )
         )
 
+        self.last_scan_stamp = None
+
         # ==================================================
-        # /scan 구독
+        # Camera / YOLO
         # ==================================================
+
+        self.camera = CameraManager(
+            save_dir=self.capture_dir
+        )
+
+        self.yolo = YoloDetector(
+            model_path=YOLO_MODEL_PATH,
+            confidence=YOLO_CONFIDENCE,
+            image_size=YOLO_IMAGE_SIZE,
+            max_det=YOLO_MAX_DET,
+        )
+
+        # ==================================================
+        # Detection
+        # ==================================================
+
+        self.state_machine = (
+            DetectionStateMachine(
+                position_threshold=(
+                    POSITION_TOLERANCE
+                )
+            )
+        )
+
+        self.current_change = None
+
+        # 여러 confirmation scan에서 본 영역을 합쳐서
+        # baseline 갱신에 사용
+        self.current_cluster_points = set()
+
+        # ==================================================
+        # QoS
+        # ==================================================
+
+        map_qos = QoSProfile(
+            reliability=(
+                ReliabilityPolicy.RELIABLE
+            ),
+            durability=(
+                DurabilityPolicy.TRANSIENT_LOCAL
+            ),
+            history=(
+                HistoryPolicy.KEEP_LAST
+            ),
+            depth=1,
+        )
+
+        self.map_subscription = (
+            self.create_subscription(
+                OccupancyGrid,
+                MAP_TOPIC,
+                self.map_callback,
+                map_qos,
+            )
+        )
 
         self.scan_subscription = (
             self.create_subscription(
                 LaserScan,
-                "/scan",
+                SCAN_TOPIC,
                 self.scan_callback,
-                qos_profile_sensor_data
+                qos_profile_sensor_data,
             )
         )
-
-        # ==================================================
-        # RealSense RGB 구독
-        # ==================================================
 
         self.camera_subscription = (
             self.create_subscription(
                 Image,
-                "/camera/camera/color/image_raw",
+                RGB_TOPIC,
                 self.camera_callback,
-                qos_profile_sensor_data
+                qos_profile_sensor_data,
             )
         )
 
         self.get_logger().info(
             "Robot Change Detector started"
         )
+        self.get_logger().info(
+            "ADDED + REMOVED enabled"
+        )
+        self.get_logger().info(
+            "No confirmed change = "
+            "no JPG / no JSON / no YOLO"
+        )
+        self.get_logger().info(
+            f"Output: {self.output_dir}"
+        )
 
     # ======================================================
-    # 기준 지도
+    # TF
+    # ======================================================
+
+    def lookup_transform(
+        self,
+        target,
+        source,
+        stamp=None,
+    ):
+        if stamp is not None:
+            try:
+                return (
+                    self.tf_buffer
+                    .lookup_transform(
+                        target,
+                        source,
+                        Time.from_msg(stamp),
+                        timeout=Duration(
+                            seconds=0.15
+                        ),
+                    )
+                )
+            except Exception:
+                pass
+
+        try:
+            return (
+                self.tf_buffer
+                .lookup_transform(
+                    target,
+                    source,
+                    Time(),
+                    timeout=Duration(
+                        seconds=0.15
+                    ),
+                )
+            )
+        except Exception as exc:
+            self.get_logger().warning(
+                f"TF unavailable "
+                f"{target} <- {source}: "
+                f"{exc}"
+            )
+            return None
+
+    # ======================================================
+    # Baseline
     # ======================================================
 
     def map_callback(self, msg):
-
         if self.baseline.map_ready:
             return
 
@@ -151,117 +256,315 @@ class ChangeDetectorNode(Node):
         )
 
         self.get_logger().info(
-            "Baseline map saved"
-        )
-
-        self.get_logger().info(
-            f"Map size: "
-            f"{self.baseline.width} x "
-            f"{self.baseline.height}"
-        )
-
-        self.get_logger().info(
-            f"Resolution: "
-            f"{self.baseline.resolution} m/cell"
+            "Baseline map saved: "
+            f"{self.baseline.width}x"
+            f"{self.baseline.height}, "
+            f"{self.baseline.resolution:.4f} "
+            "m/cell"
         )
 
     # ======================================================
-    # RealSense Camera
+    # RealSense
     # ======================================================
 
     def camera_callback(self, msg):
-
-        self.camera.update_frame(
-            msg
-        )
+        # 평소에는 저장하지 않음.
+        # 변화 확정 때 사용할 최신 frame만 보관.
+        self.camera.update_frame(msg)
 
     # ======================================================
-    # Robot Pose
+    # Robot pose
     # ======================================================
 
     def get_robot_pose(self):
-        """
-        TF에서 map 기준 로봇의
-        x, y, yaw를 가져옵니다.
-        """
-
-        try:
-
-            transform = (
-                self.tf_buffer.lookup_transform(
-                    "map",
-                    "base_link",
-                    Time()
-                )
+        transform = (
+            self.lookup_transform(
+                MAP_FRAME,
+                BASE_FRAME,
+                self.last_scan_stamp,
             )
+        )
 
-        except Exception as e:
-
-            self.get_logger().warning(
-                f"Robot pose unavailable: {e}"
-            )
-
+        if transform is None:
             return None
 
-        # -----------------------------------------
-        # 위치
-        # -----------------------------------------
-
         translation = (
-            transform.transform.translation
+            transform
+            .transform
+            .translation
         )
-
-        x = float(
-            translation.x
-        )
-
-        y = float(
-            translation.y
-        )
-
-        # -----------------------------------------
-        # 방향
-        # -----------------------------------------
-
         rotation = (
-            transform.transform.rotation
+            transform
+            .transform
+            .rotation
         )
 
-        qx = rotation.x
-        qy = rotation.y
-        qz = rotation.z
-        qw = rotation.w
-
-        # Quaternion -> Yaw
         yaw = math.atan2(
-            2.0 * (
-                qw * qz
-                + qx * qy
+            2.0
+            * (
+                rotation.w
+                * rotation.z
+                + rotation.x
+                * rotation.y
             ),
-            1.0 - 2.0 * (
-                qy * qy
-                + qz * qz
-            )
+            1.0
+            - 2.0
+            * (
+                rotation.y
+                * rotation.y
+                + rotation.z
+                * rotation.z
+            ),
         )
 
         return {
-            "x": x,
-            "y": y,
-            "yaw": yaw
+            "x": float(
+                translation.x
+            ),
+            "y": float(
+                translation.y
+            ),
+            "yaw": float(yaw),
         }
 
     # ======================================================
-    # LiDAR
+    # Candidate creation
+    # ======================================================
+
+    def build_candidates(
+        self,
+        scan_msg,
+        transform,
+    ):
+        observation = (
+            build_scan_observation(
+                scan_msg,
+                transform,
+                self.baseline,
+            )
+        )
+
+        candidates = []
+
+        # --------------------------------------------------
+        # ADDED
+        #
+        # 이전 FREE
+        # 현재 LiDAR endpoint 존재
+        # --------------------------------------------------
+
+        added_points = [
+            point
+            for point in observation[
+                "hit_points"
+            ]
+            if self.baseline.is_free(
+                point[0],
+                point[1],
+            )
+        ]
+
+        added_clusters = [
+            cluster
+            for cluster
+            in cluster_points(
+                added_points
+            )
+            if len(cluster)
+            >= ADDED_MIN_CLUSTER_POINTS
+        ]
+
+        for cluster in added_clusters:
+            center = get_center(
+                cluster
+            )
+
+            if center is None:
+                continue
+
+            change = detect_change(
+                position=center,
+                past_state=0,
+                current_state=1,
+            )
+
+            if change is None:
+                continue
+
+            candidates.append(
+                {
+                    "change": change,
+                    "cluster": cluster,
+                    "required_count": (
+                        ADDED_CONFIRM_COUNT
+                    ),
+                    "score": len(cluster),
+                }
+            )
+
+        # --------------------------------------------------
+        # REMOVED
+        #
+        # 이전 OCCUPIED
+        # 현재 LiDAR ray가 그 cell을 통과해서
+        # 더 뒤쪽 endpoint까지 실제로 관측함
+        #
+        # "점이 안 찍혔다"만으로 제거 판정하지 않음.
+        # --------------------------------------------------
+
+        removed_points = []
+
+        for gx, gy in observation[
+            "observed_free_cells"
+        ]:
+            if not (
+                self.baseline
+                .is_occupied_grid(
+                    gx,
+                    gy,
+                )
+            ):
+                continue
+
+            world = (
+                self.baseline
+                .grid_to_world(
+                    gx,
+                    gy,
+                )
+            )
+
+            if world is not None:
+                removed_points.append(
+                    world
+                )
+
+        removed_clusters = [
+            cluster
+            for cluster
+            in cluster_points(
+                removed_points
+            )
+            if len(cluster)
+            >= REMOVED_MIN_CLUSTER_POINTS
+        ]
+
+        for cluster in removed_clusters:
+            center = get_center(
+                cluster
+            )
+
+            if center is None:
+                continue
+
+            change = detect_change(
+                position=center,
+                past_state=1,
+                current_state=0,
+            )
+
+            if change is None:
+                continue
+
+            candidates.append(
+                {
+                    "change": change,
+                    "cluster": cluster,
+                    "required_count": (
+                        REMOVED_CONFIRM_COUNT
+                    ),
+                    "score": len(cluster),
+                }
+            )
+
+        return candidates
+
+    def choose_candidate(
+        self,
+        candidates,
+    ):
+        if not candidates:
+            return None
+
+        state = (
+            self.state_machine
+            .get_state()
+        )
+
+        # 확인 중에는 같은 종류 + 같은 위치 후보만 이어감.
+        if (
+            state
+            == DetectionState.CONFIRMING
+        ):
+            target_type = (
+                self.state_machine
+                .candidate_event_type
+            )
+            target_position = (
+                self.state_machine
+                .candidate_position
+            )
+
+            matching = []
+
+            for candidate in candidates:
+                change = candidate[
+                    "change"
+                ]
+
+                if (
+                    change["event_type"]
+                    != target_type
+                ):
+                    continue
+
+                position = (
+                    change["position"]["x"],
+                    change["position"]["y"],
+                )
+
+                d = distance(
+                    position,
+                    target_position,
+                )
+
+                if (
+                    d
+                    <= POSITION_TOLERANCE
+                ):
+                    matching.append(
+                        (d, candidate)
+                    )
+
+            if not matching:
+                return None
+
+            matching.sort(
+                key=lambda item: item[0]
+            )
+
+            return matching[0][1]
+
+        # 새 감시 상태에서는 가장 강한 cluster부터.
+        return max(
+            candidates,
+            key=lambda item: item[
+                "score"
+            ],
+        )
+
+    # ======================================================
+    # Main scan callback
     # ======================================================
 
     def scan_callback(self, scan_msg):
-
-        # --------------------------------------------------
-        # 처리 중이면 새로운 Scan 처리 안 함
-        # --------------------------------------------------
+        self.last_scan_stamp = (
+            scan_msg.header.stamp
+        )
 
         state = (
-            self.state_machine.get_state()
+            self.state_machine
+            .get_state()
         )
 
         if state in (
@@ -271,174 +574,42 @@ class ChangeDetectorNode(Node):
         ):
             return
 
-        # --------------------------------------------------
-        # 기준 지도 확인
-        # --------------------------------------------------
-
         if not self.baseline.map_ready:
-
-            self.get_logger().warning(
-                "Waiting for baseline map..."
-            )
-
             return
 
-        # --------------------------------------------------
-        # LiDAR frame
-        # --------------------------------------------------
-
-        lidar_frame = (
-            scan_msg.header.frame_id
+        transform = (
+            self.lookup_transform(
+                MAP_FRAME,
+                scan_msg.header.frame_id,
+                scan_msg.header.stamp,
+            )
         )
 
-        # --------------------------------------------------
-        # TF 조회
-        # --------------------------------------------------
-
-        try:
-
-            transform = (
-                self.tf_buffer.lookup_transform(
-                    "map",
-                    lidar_frame,
-                    Time()
-                )
-            )
-
-        except Exception as e:
-
-            self.get_logger().warning(
-                f"TF unavailable: {e}"
-            )
-
+        if transform is None:
             return
 
-        # --------------------------------------------------
-        # LaserScan -> map 좌표
-        # --------------------------------------------------
-
-        lidar_points = (
-            scan_to_map_points(
+        candidates = (
+            self.build_candidates(
                 scan_msg,
-                transform
+                transform,
             )
         )
 
-        if not lidar_points:
+        candidate = (
+            self.choose_candidate(
+                candidates
+            )
+        )
+
+        if candidate is None:
+            self.cancel_pending_change_if_needed()
             return
 
-        # --------------------------------------------------
-        # 기준 지도와 비교
-        #
-        # 기준 지도에서 FREE였던 위치에
-        # 현재 LiDAR 장애물이 나타났는지 확인
-        # --------------------------------------------------
-
-        changed_points = []
-
-        for x, y in lidar_points:
-
-            if self.baseline.is_free(
-                x,
-                y
-            ):
-
-                changed_points.append(
-                    (x, y)
-                )
-
-        # --------------------------------------------------
-        # 변화 없음
-        # --------------------------------------------------
-
-        if not changed_points:
-
-            if (
-                self.state_machine.get_state()
-                == DetectionState.CONFIRMING
-            ):
-
-                self.get_logger().info(
-                    "Change disappeared "
-                    "during confirmation"
-                )
-
-                self.state_machine.cancel_confirmation()
-
-                self.current_change = None
-
-            return
-
-        # --------------------------------------------------
-        # 가까운 변화 좌표 묶기
-        # --------------------------------------------------
-
-        clusters = cluster_points(
-            changed_points
-        )
-
-        # --------------------------------------------------
-        # 너무 작은 Cluster 제거
-        # --------------------------------------------------
-
-        valid_clusters = []
-
-        for cluster in clusters:
-
-            if len(cluster) >= 3:
-
-                valid_clusters.append(
-                    cluster
-                )
-
-        # --------------------------------------------------
-        # 유효한 변화 없음
-        # --------------------------------------------------
-
-        if not valid_clusters:
-
-            if (
-                self.state_machine.get_state()
-                == DetectionState.CONFIRMING
-            ):
-
-                self.state_machine.cancel_confirmation()
-
-                self.current_change = None
-
-            return
-
-        # --------------------------------------------------
-        # 가장 큰 변화 영역 선택
-        # --------------------------------------------------
-
-        largest_cluster = max(
-            valid_clusters,
-            key=len
-        )
-
-        center = get_center(
-            largest_cluster
-        )
-
-        self.get_logger().info(
-            f"CHANGE CANDIDATE: "
-            f"{center} "
-            f"({len(largest_cluster)} points)"
-        )
-
-        # --------------------------------------------------
-        # Change Detector
-        # --------------------------------------------------
-
-        change = detect_change(
-            position=center,
-            past_state=0,
-            current_state=1
-        )
-
-        if change is None:
-            return
+        change = candidate["change"]
+        cluster = candidate["cluster"]
+        required_count = candidate[
+            "required_count"
+        ]
 
         position = (
             change["position"]["x"],
@@ -449,72 +620,78 @@ class ChangeDetectorNode(Node):
             change["event_type"]
         )
 
-        # ==================================================
-        # State Machine
-        # ==================================================
-
         state = (
-            self.state_machine.get_state()
+            self.state_machine
+            .get_state()
         )
 
         # --------------------------------------------------
-        # 최초 변화 발견
+        # 첫 발견
         # --------------------------------------------------
 
-        if state == DetectionState.MONITORING:
-
-            self.current_change = change
-
-            self.get_logger().info(
-                f"New change candidate: "
-                f"{event_type} "
-                f"{position}"
+        if (
+            state
+            == DetectionState.MONITORING
+        ):
+            self.current_change = (
+                change
+            )
+            self.current_cluster_points = (
+                set(cluster)
             )
 
             self.state_machine.start_confirmation(
                 position=position,
-                event_type=event_type
+                event_type=event_type,
+                required_count=(
+                    required_count
+                ),
+            )
+
+            self.get_logger().info(
+                f"CHANGE CANDIDATE: "
+                f"{event_type} "
+                f"{position} "
+                f"1/{required_count}"
             )
 
             return
 
         # --------------------------------------------------
-        # 변화 확인 중
+        # 연속 확인
         # --------------------------------------------------
 
-        if state == DetectionState.CONFIRMING:
-
+        if (
+            state
+            == DetectionState.CONFIRMING
+        ):
             confirmed = (
-                self.state_machine.confirm_detection(
+                self.state_machine
+                .confirm_detection(
                     position=position,
-                    event_type=event_type
+                    event_type=event_type,
                 )
             )
 
-            # ----------------------------------------------
-            # 아직 확정되지 않음
-            # ----------------------------------------------
-
             if not confirmed:
-
                 if (
-                    self.state_machine.get_state()
+                    self.state_machine
+                    .get_state()
                     == DetectionState.MONITORING
                 ):
-
-                    self.get_logger().info(
-                        "Change candidate rejected"
-                    )
-
-                    self.current_change = None
+                    self.clear_current_change()
 
                 return
 
-            # ----------------------------------------------
-            # 변화 확정
-            # ----------------------------------------------
+            # 여기까지 왔으면 확정
+            self.current_change = (
+                change
+            )
 
-            self.current_change = change
+            # 여러 scan에서 관측된 변화 영역을 합침
+            self.current_cluster_points.update(
+                cluster
+            )
 
             self.get_logger().info(
                 f"CHANGE CONFIRMED: "
@@ -524,208 +701,180 @@ class ChangeDetectorNode(Node):
 
             self.process_confirmed_change()
 
+    def cancel_pending_change_if_needed(
+        self
+    ):
+        if (
+            self.state_machine
+            .get_state()
+            == DetectionState.CONFIRMING
+        ):
+            self.state_machine.cancel_confirmation()
+            self.clear_current_change()
+
+    def clear_current_change(self):
+        self.current_change = None
+        self.current_cluster_points = set()
+
     # ======================================================
-    # 확정된 변화 처리
+    # Confirmed:
+    # RealSense -> YOLO -> pose -> JSON -> baseline update
     # ======================================================
 
     def process_confirmed_change(self):
-
-        # --------------------------------------------------
-        # CAPTURING 상태 확인
-        # --------------------------------------------------
-
         if (
-            self.state_machine.get_state()
+            self.state_machine
+            .get_state()
             != DetectionState.CAPTURING
         ):
             return
 
         if self.current_change is None:
-
-            self.get_logger().warning(
-                "Confirmed change data unavailable"
-            )
-
-            self.state_machine.reset()
-
+            self.reset_current_event()
             return
 
-        # ==================================================
-        # Camera Capture
-        # ==================================================
-
+        # 1. 변화가 확정된 경우에만 RealSense 저장
         image_path = (
             self.camera.capture()
         )
 
         if image_path is None:
-
             self.get_logger().warning(
-                "Camera frame unavailable"
+                "Confirmed change, "
+                "but RGB frame unavailable. "
+                "Event not saved."
             )
-
-            self.state_machine.reset()
-
-            self.current_change = None
-
+            self.reset_current_event()
             return
 
         self.get_logger().info(
             f"Captured: {image_path}"
         )
 
-        # --------------------------------------------------
-        # CAPTURING -> ANALYZING
-        # --------------------------------------------------
-
         self.state_machine.capture_completed()
 
-        # ==================================================
-        # YOLO
-        # ==================================================
-
+        # 2. 변화가 확정된 경우에만 YOLO 1회
         try:
-
             detected_objects = (
                 self.yolo.detect(
                     image_path
                 )
             )
-
-        except Exception as e:
-
+        except Exception as exc:
             self.get_logger().error(
-                f"YOLO error: {e}"
+                f"YOLO error: {exc}"
             )
-
-            self.state_machine.reset()
-
-            self.current_change = None
-
-            return
-
-        # ==================================================
-        # YOLO 결과
-        # ==================================================
+            detected_objects = []
 
         if detected_objects:
-
-            self.get_logger().info(
-                f"YOLO detected "
-                f"{len(detected_objects)} object(s)"
+            labels = ", ".join(
+                f'{obj["label"]}'
+                f'({obj["confidence"]:.2f})'
+                for obj
+                in detected_objects
             )
 
-            for obj in detected_objects:
-
-                label = obj["label"]
-
-                confidence = (
-                    obj["confidence"]
-                )
-
-                self.get_logger().info(
-                    f"  - {label} "
-                    f"(confidence={confidence})"
-                )
-
+            self.get_logger().info(
+                f"YOLO: {labels}"
+            )
         else:
-
-            position = (
-                self.current_change[
-                    "position"
-                ]
-            )
-
             self.get_logger().info(
-                f"Change detected at "
-                f"{position}, "
-                f"but YOLO found no object"
+                "YOLO: no recognized object"
             )
-
-        # --------------------------------------------------
-        # ANALYZING -> PROCESSING
-        # --------------------------------------------------
 
         self.state_machine.analysis_completed()
 
-        # ==================================================
-        # Robot Pose
-        # ==================================================
-
+        # 3. Robot pose
         robot_pose = (
             self.get_robot_pose()
         )
 
         if robot_pose is None:
-
             self.get_logger().warning(
                 "Robot pose unavailable. "
-                "Event will not be created."
+                "Event not saved."
             )
-
-            self.state_machine.reset()
-
-            self.current_change = None
-
+            self.reset_current_event()
             return
 
-        self.get_logger().info(
-            f"Robot pose: "
-            f"x={robot_pose['x']:.3f}, "
-            f"y={robot_pose['y']:.3f}, "
-            f"yaw={robot_pose['yaw']:.3f}"
-        )
-
-        # ==================================================
-        # Event 생성
-        # ==================================================
-
+        # 4. JSON
         try:
-
             event = create_event(
-                self.current_change,
-                detected_objects,
-                image_path,
-                robot_pose,
+                change=self.current_change,
+                detected_objects=(
+                    detected_objects
+                ),
+                image_path=image_path,
+                robot_pose=robot_pose,
+                save_dir=self.event_dir,
             )
-
-        except Exception as e:
-
+        except Exception as exc:
             self.get_logger().error(
-                f"Event creation failed: {e}"
+                f"Event save failed: {exc}"
             )
-
-            self.state_machine.reset()
-
-            self.current_change = None
-
+            self.reset_current_event()
             return
 
         self.get_logger().info(
-            f"EVENT CREATED: {event}"
+            "EVENT CREATED:\n"
+            + json.dumps(
+                event,
+                ensure_ascii=False,
+                indent=2,
+            )
         )
 
-        # ==================================================
-        # TODO
-        #
-        # 다음 단계에서 FastAPI 서버 전송 연결
-        # ==================================================
+        # 5. 새 상황을 baseline에 반영
+        cluster_points_for_update = list(
+            self.current_cluster_points
+        )
 
-        # --------------------------------------------------
-        # PROCESSING -> MONITORING
-        # --------------------------------------------------
+        event_type = (
+            self.current_change[
+                "event_type"
+            ]
+        )
+
+        if event_type == "ADDED":
+            updated_cells = (
+                self.baseline
+                .mark_points_occupied(
+                    cluster_points_for_update,
+                    padding_cells=(
+                        BASELINE_PADDING_CELLS
+                    ),
+                )
+            )
+
+        elif event_type == "REMOVED":
+            updated_cells = (
+                self.baseline
+                .mark_points_free(
+                    cluster_points_for_update,
+                    padding_cells=(
+                        BASELINE_PADDING_CELLS
+                    ),
+                )
+            )
+
+        else:
+            updated_cells = 0
+
+        self.get_logger().info(
+            f"Baseline updated after "
+            f"{event_type}: "
+            f"{updated_cells} cells"
+        )
 
         self.state_machine.processing_completed()
+        self.clear_current_change()
 
-        self.current_change = None
+    def reset_current_event(self):
+        self.state_machine.reset()
+        self.clear_current_change()
 
-
-# ==========================================================
-# 실행
-# ==========================================================
 
 def main(args=None):
-
     rclpy.init(
         args=args
     )
@@ -733,22 +882,15 @@ def main(args=None):
     node = ChangeDetectorNode()
 
     try:
-
         rclpy.spin(
             node
         )
-
     except KeyboardInterrupt:
-
         pass
-
     finally:
-
         node.destroy_node()
-
         rclpy.shutdown()
 
 
 if __name__ == "__main__":
-
     main()

@@ -1,177 +1,170 @@
-import json
 import math
 
 
 class BaselineManager:
-
     FREE = 0
     OCCUPIED = 100
     UNKNOWN = -1
 
-    def __init__(self, object_path=None):
+    # OccupancyGrid에서 50 이상이면 occupied로 취급
+    OCCUPIED_THRESHOLD = 50
 
-        # 과거 사물 정보
-        self.objects = []
-
-        if object_path:
-            with open(
-                object_path,
-                "r",
-                encoding="utf-8"
-            ) as f:
-                self.objects = json.load(f)
-
-        # 기준 OccupancyGrid
+    def __init__(self):
         self.resolution = None
         self.width = None
         self.height = None
 
         self.origin_x = None
         self.origin_y = None
+        self.origin_yaw = 0.0
 
         self.map_data = None
-
         self.map_ready = False
 
-    # -------------------------------------------------
-    # 기준 지도 저장
-    # -------------------------------------------------
+    @staticmethod
+    def _quaternion_to_yaw(q):
+        return math.atan2(
+            2.0 * (q.w * q.z + q.x * q.y),
+            1.0 - 2.0 * (q.y * q.y + q.z * q.z),
+        )
 
     def set_baseline_map(self, map_msg):
         """
-        ROS2 OccupancyGrid를 기준 지도로 저장한다.
-
-        최초 1회만 저장한다.
-        이후 /map이 변경되어도 기준 지도는 변경하지 않는다.
+        프로그램 시작 후 처음 받은 /map을 '이전 상황'으로 저장.
+        이후에는 확정된 변화만 이 baseline에 반영합니다.
         """
-
         if self.map_ready:
             return
 
-        self.resolution = (
-            map_msg.info.resolution
+        self.resolution = float(map_msg.info.resolution)
+        self.width = int(map_msg.info.width)
+        self.height = int(map_msg.info.height)
+
+        self.origin_x = float(map_msg.info.origin.position.x)
+        self.origin_y = float(map_msg.info.origin.position.y)
+        self.origin_yaw = self._quaternion_to_yaw(
+            map_msg.info.origin.orientation
         )
 
-        self.width = (
-            map_msg.info.width
-        )
-
-        self.height = (
-            map_msg.info.height
-        )
-
-        self.origin_x = (
-            map_msg.info.origin.position.x
-        )
-
-        self.origin_y = (
-            map_msg.info.origin.position.y
-        )
-
-        self.map_data = list(
-            map_msg.data
-        )
-
+        self.map_data = list(map_msg.data)
         self.map_ready = True
 
-    # -------------------------------------------------
-    # 실제 좌표 → Grid 좌표
-    # -------------------------------------------------
-
     def world_to_grid(self, x, y):
-
         if not self.map_ready:
             return None
 
-        grid_x = int(
-            (x - self.origin_x)
-            / self.resolution
-        )
+        dx = float(x) - self.origin_x
+        dy = float(y) - self.origin_y
 
-        grid_y = int(
-            (y - self.origin_y)
-            / self.resolution
-        )
+        c = math.cos(self.origin_yaw)
+        s = math.sin(self.origin_yaw)
 
-        if (
-            grid_x < 0
-            or grid_x >= self.width
-        ):
+        local_x = c * dx + s * dy
+        local_y = -s * dx + c * dy
+
+        gx = int(math.floor(local_x / self.resolution))
+        gy = int(math.floor(local_y / self.resolution))
+
+        if not self.in_bounds(gx, gy):
             return None
 
-        if (
-            grid_y < 0
-            or grid_y >= self.height
-        ):
+        return gx, gy
+
+    def grid_to_world(self, gx, gy):
+        """
+        grid cell 중앙을 map/world 좌표로 변환합니다.
+        """
+        if not self.map_ready or not self.in_bounds(gx, gy):
             return None
 
-        return grid_x, grid_y
+        local_x = (float(gx) + 0.5) * self.resolution
+        local_y = (float(gy) + 0.5) * self.resolution
 
-    # -------------------------------------------------
-    # 기준 지도 값 조회
-    # -------------------------------------------------
+        c = math.cos(self.origin_yaw)
+        s = math.sin(self.origin_yaw)
+
+        world_x = self.origin_x + c * local_x - s * local_y
+        world_y = self.origin_y + s * local_x + c * local_y
+
+        return (round(world_x, 3), round(world_y, 3))
+
+    def in_bounds(self, gx, gy):
+        return (
+            self.width is not None
+            and self.height is not None
+            and 0 <= gx < self.width
+            and 0 <= gy < self.height
+        )
+
+    def get_grid_value(self, gx, gy):
+        if not self.map_ready or not self.in_bounds(gx, gy):
+            return self.UNKNOWN
+
+        return self.map_data[gy * self.width + gx]
 
     def get_map_value(self, x, y):
-
-        grid = self.world_to_grid(
-            x,
-            y
-        )
+        grid = self.world_to_grid(x, y)
 
         if grid is None:
-            return None
+            return self.UNKNOWN
 
-        grid_x, grid_y = grid
-
-        index = (
-            grid_y * self.width
-            + grid_x
-        )
-
-        return self.map_data[index]
-
-    # -------------------------------------------------
-    # 해당 위치가 과거에 빈 공간인지 확인
-    # -------------------------------------------------
+        return self.get_grid_value(*grid)
 
     def is_free(self, x, y):
+        return self.get_map_value(x, y) == self.FREE
 
-        value = self.get_map_value(
-            x,
-            y
+    def is_occupied(self, x, y):
+        value = self.get_map_value(x, y)
+        return value >= self.OCCUPIED_THRESHOLD
+
+    def is_occupied_grid(self, gx, gy):
+        value = self.get_grid_value(gx, gy)
+        return value >= self.OCCUPIED_THRESHOLD
+
+    def _mark_points(self, points, value, padding_cells):
+        if not self.map_ready:
+            return 0
+
+        changed_cells = set()
+
+        for x, y in points:
+            grid = self.world_to_grid(x, y)
+
+            if grid is None:
+                continue
+
+            gx, gy = grid
+
+            for dx in range(-padding_cells, padding_cells + 1):
+                for dy in range(-padding_cells, padding_cells + 1):
+                    nx = gx + dx
+                    ny = gy + dy
+
+                    if self.in_bounds(nx, ny):
+                        changed_cells.add((nx, ny))
+
+        for gx, gy in changed_cells:
+            self.map_data[gy * self.width + gx] = value
+
+        return len(changed_cells)
+
+    def mark_points_occupied(self, points, padding_cells=2):
+        """
+        ADDED 저장 후 현재 물체 영역을 baseline OCCUPIED로 반영.
+        """
+        return self._mark_points(
+            points,
+            self.OCCUPIED,
+            padding_cells,
         )
 
-        return value == self.FREE
-
-    # -------------------------------------------------
-    # 과거 객체 검색
-    # -------------------------------------------------
-
-    def find_nearest_object(
-        self,
-        x,
-        y,
-        tolerance=0.20
-    ):
-
-        nearest = None
-        nearest_distance = float("inf")
-
-        for item in self.objects:
-
-            px = item["position"]["x"]
-            py = item["position"]["y"]
-
-            distance = math.sqrt(
-                (x - px) ** 2
-                + (y - py) ** 2
-            )
-
-            if (
-                distance <= tolerance
-                and distance < nearest_distance
-            ):
-                nearest = item
-                nearest_distance = distance
-
-        return nearest
+    def mark_points_free(self, points, padding_cells=2):
+        """
+        REMOVED 저장 후 사라진 영역을 baseline FREE로 반영.
+        같은 제거 이벤트가 계속 반복되는 것을 막습니다.
+        """
+        return self._mark_points(
+            points,
+            self.FREE,
+            padding_cells,
+        )
