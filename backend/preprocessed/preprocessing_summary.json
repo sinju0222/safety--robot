@@ -1,0 +1,53 @@
+{
+  "config": {
+    "occupied_threshold": 65.0,
+    "target_rgb_width": 640,
+    "target_rgb_height": 480,
+    "depth_clip_min": 0.0,
+    "depth_clip_max": null,
+    "lidar_min_range": 0.05,
+    "lidar_max_range": 30.0
+  },
+  "source": {
+    "height": 110,
+    "width": 124,
+    "dtype": "int8",
+    "min": -1.0,
+    "max": 100.0
+  },
+  "map": {
+    "width": 124,
+    "height": 110,
+    "occupied_cells": 377,
+    "free_cells": 6738,
+    "unknown_cells": 6525
+  },
+  "lidar": {
+    "source_key": "ranges",
+    "raw_shape": [
+      398
+    ],
+    "valid_count": 356
+  },
+  "depth": {
+    "shape": [
+      480,
+      640
+    ],
+    "valid_pixels": 189695,
+    "min_valid": 154.0,
+    "max_valid": 23812.0
+  },
+  "rgb": {
+    "original_shape": [
+      480,
+      640,
+      3
+    ],
+    "resized_shape": [
+      480,
+      640,
+      3
+    ]
+  }
+}

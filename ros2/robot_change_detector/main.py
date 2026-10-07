@@ -1,6 +1,7 @@
 import json
 import math
 from pathlib import Path
+import os
 
 import rclpy
 from rclpy.duration import Duration
@@ -17,6 +18,7 @@ from rclpy.time import Time
 from nav_msgs.msg import OccupancyGrid
 from sensor_msgs.msg import Image, LaserScan
 from tf2_ros import Buffer, TransformListener
+from server_sender import ServerSender
 
 from baseline_manager import BaselineManager
 from camera_manager import CameraManager
@@ -83,6 +85,24 @@ class ChangeDetectorNode(Node):
             parents=True,
             exist_ok=True,
         )
+                backend_url = os.environ.get(
+            "SAFETY_BACKEND_URL",
+            "",
+        ).strip()
+
+        self.server_sender = ServerSender(
+            backend_url=backend_url,
+        )
+
+        if self.server_sender.enabled:
+            self.get_logger().info(
+                f"Backend server: {backend_url}"
+            )
+        else:
+            self.get_logger().warning(
+                "SAFETY_BACKEND_URL is not set. "
+                "Server upload disabled."
+            )
 
         # ==================================================
         # Baseline
@@ -823,6 +843,11 @@ class ChangeDetectorNode(Node):
                 indent=2,
             )
         )
+                if self.server_sender.enabled:
+            self.server_sender.send_event(
+                event=event,
+                image_path=image_path,
+            )
 
         # 5. 새 상황을 baseline에 반영
         cluster_points_for_update = list(

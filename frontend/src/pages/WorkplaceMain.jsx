@@ -3,6 +3,9 @@ import {
   useState,
 } from "react";
 
+import ChangeDetectionPhoto
+  from "./ChangeDetectionPhoto";
+
 import PixelGridMap from "../PixelGridMap";
 const API_URL =
   "http://127.0.0.1:8000";
@@ -1098,7 +1101,7 @@ function WorkplaceMain({
                 </div>
 
               </div>
-
+              <ChangeDetectionPhoto />
               {currentEvents.length >
                 0 && (
                 <div className="latest-event">

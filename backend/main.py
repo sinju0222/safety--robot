@@ -9,10 +9,14 @@ from typing import Dict, List, Optional
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
+from robot_event_api import router as robot_event_router
 
 app = FastAPI(
     title="Safety Robot API",
     version="0.5.0",
+)
+app.include_router(
+    robot_event_router
 )
 # =========================================================
 # FastAPI

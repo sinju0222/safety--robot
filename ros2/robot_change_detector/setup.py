@@ -18,6 +18,7 @@ setup(
         "scan_observer",
         "state_machine",
         "yolo_detector",
+        "server_sender",
     ],
     data_files=[
         (
