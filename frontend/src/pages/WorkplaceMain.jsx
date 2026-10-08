@@ -925,7 +925,7 @@ function WorkplaceMain({
     >
 
       {/* 실시간 환경지도 */}
-      <PixelGridMap />
+      <PixelGridMap workplaceId={workplace.id} />
 
       {/* 저장된 구역 표시 */}
       <div

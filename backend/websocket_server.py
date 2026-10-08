@@ -1,66 +1,82 @@
+
 import asyncio
 import json
+from pathlib import Path
+
 import numpy as np
-import os
-
-from fastapi import WebSocket
+from fastapi import WebSocket, WebSocketDisconnect
 
 
-DATA_PATH = "./robot_data"
-
+# 백엔드 내부의 robot_data 폴더
+DATA_PATH = Path(__file__).resolve().parent / "robot_data"
 
 
 def load_slam_map():
 
-    file_path = os.path.join(
-        DATA_PATH,
-        "slam_map.npy"
+    # 실제 지도 데이터
+    grid = np.load(
+        DATA_PATH / "slam_map.npy",
+        allow_pickle=False,
     )
 
+    # 지도 좌표 정보
+    with (DATA_PATH / "slam_map.json").open(
+        "r",
+        encoding="utf-8",
+    ) as file:
+        metadata = json.load(file)
 
-    grid = np.load(file_path)
+    height, width = grid.shape
 
+    # 두 파일이 같은 지도인지 확인
+    if (
+        width != int(metadata["width"])
+        or height != int(metadata["height"])
+    ):
+        raise ValueError(
+            "slam_map.npy와 slam_map.json의 "
+            "지도 크기가 일치하지 않습니다."
+        )
+
+    origin = metadata["origin"]
 
     return {
-
         "type": "map",
 
-        "width": int(grid.shape[1]),
+        "width": width,
+        "height": height,
 
-        "height": int(grid.shape[0]),
+        "resolution": float(
+            metadata["resolution"]
+        ),
 
-        "data": grid.flatten().tolist()
+        "origin": {
+            "x": float(origin["x"]),
+            "y": float(origin["y"]),
+        },
 
+        "data": grid.flatten().tolist(),
     }
-
 
 
 async def send_map(websocket: WebSocket):
 
-
     while True:
-
-
         try:
-
             map_data = load_slam_map()
-
 
             await websocket.send_json(
                 map_data
             )
 
-
-            # 테스트용 1초 주기
             await asyncio.sleep(1)
 
-
+        except WebSocketDisconnect:
+            break
 
         except Exception as e:
-
             print(
                 "Websocket error:",
                 e
             )
-
             break

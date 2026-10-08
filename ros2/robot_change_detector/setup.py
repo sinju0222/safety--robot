@@ -19,6 +19,7 @@ setup(
         "state_machine",
         "yolo_detector",
         "server_sender",
+        "telemetry_sender",
     ],
     data_files=[
         (

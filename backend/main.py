@@ -1,4 +1,5 @@
-import asyncio # 👈 추가
+import asyncio
+import math
 from fastapi.middleware.cors import CORSMiddleware
 import json    # 👈 추가
 from fastapi import WebSocket
@@ -10,6 +11,8 @@ from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from robot_event_api import router as robot_event_router
+from telemetry_api import router as telemetry_router
+from pathlib import Path
 
 app = FastAPI(
     title="Safety Robot API",
@@ -18,6 +21,7 @@ app = FastAPI(
 app.include_router(
     robot_event_router
 )
+app.include_router(telemetry_router)
 # =========================================================
 # FastAPI
 # =========================================================
@@ -31,7 +35,15 @@ async def websocket_map(websocket: WebSocket):
 
     print("WebSocket accepted")
 
-    await send_map(websocket)
+    raw_id = websocket.query_params.get("workplace_id", "1")
+    try:
+        workplace_id = int(raw_id)
+        if workplace_id < 1:
+            raise ValueError()
+    except ValueError:
+        await websocket.close(code=1008)
+        return
+    await send_map(websocket, workplace_id)
 
 
 app.add_middleware(
@@ -189,6 +201,42 @@ workplaces: Dict[int, Workplace] = {}
 next_workplace_id = 1
 next_patrol_id = 1
 next_event_id = 1
+
+
+# =========================================================
+# Persistent workplace configuration
+# =========================================================
+STATE_FILE = Path(__file__).resolve().parent / "robot_data" / "workplaces.json"
+
+
+def save_workplaces():
+    STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+    data = {
+        "workplaces": {str(k): (v.model_dump() if hasattr(v, "model_dump") else v.dict())
+                       for k, v in workplaces.items()},
+        "next_workplace_id": next_workplace_id,
+        "next_patrol_id": next_patrol_id,
+        "next_event_id": next_event_id,
+    }
+    temp = STATE_FILE.with_suffix(".tmp")
+    temp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+    temp.replace(STATE_FILE)
+
+
+def load_workplaces():
+    global next_workplace_id, next_patrol_id, next_event_id
+    if not STATE_FILE.exists():
+        return
+    data = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+    workplaces.update({int(k): Workplace(**v)
+                       for k, v in data.get("workplaces", {}).items()})
+    next_workplace_id = max(int(data.get("next_workplace_id", 1)),
+                            max(workplaces.keys(), default=0) + 1)
+    next_patrol_id = int(data.get("next_patrol_id", 1))
+    next_event_id = int(data.get("next_event_id", 1))
+
+
+load_workplaces()
 
 
 # =========================================================
@@ -498,6 +546,64 @@ def evaluate_risk(
     }
 
 
+
+# =========================================================
+# Risk evaluation for REAL robot events (no fabricated risk from Pi)
+# =========================================================
+def evaluate_robot_event_risk(event: dict) -> dict:
+    """YOLO recognition + active workplace rules; HIGH only for policy violation.
+
+    The image detector alone cannot reliably assign a bounding box to the LiDAR
+    change, so a positive result here is a *possible* hazard requiring review.
+    REMOVED is not classified using a photograph taken after disappearance.
+    """
+    normal = {"is_danger": False, "reason": None}
+    change = event.get("change") or {}
+    if change.get("type") != "ADDED":
+        return normal
+    try:
+        workplace_id = int(event.get("workplace_id", 0))
+        x, y = float(change["x"]), float(change["y"])
+    except (TypeError, ValueError, KeyError):
+        return normal
+    if not math.isfinite(x) or not math.isfinite(y):
+        return normal
+    workplace = workplaces.get(workplace_id)
+    if workplace is None or workplace.map.status != "ready":
+        return normal
+
+    for item in event.get("objects", []):
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label") or "").strip().lower()
+        try:
+            confidence = float(item.get("confidence", 0))
+        except (TypeError, ValueError):
+            continue
+        if not label or not math.isfinite(confidence) or confidence < 0.50:
+            continue
+        # COCO YOLO11n: bottle -> existing project's water_bottle policy
+        object_type = {"bottle": "water_bottle"}.get(label, label)
+        data = PatrolEventCreate(
+            objectType=object_type,
+            objectName=label,
+            x=x, y=y,
+        )
+        risk = evaluate_risk(workplace, data)
+        if risk.get("riskLevel") == "HIGH":
+            return {
+                "is_danger": True,
+                "reason": risk.get("policyName") or "위험 정책 위반",
+                "zoneId": risk.get("zoneId"),
+                "zoneName": risk.get("zoneName"),
+                "label": label,
+                "confidence": confidence,
+            }
+    return normal
+
+
+app.state.robot_risk_evaluator = evaluate_robot_event_risk
+
 # =========================================================
 # Health
 # =========================================================
@@ -561,6 +667,7 @@ def create_workplace(
 
     next_workplace_id += 1
 
+    save_workplaces()
     return workplace
 
 
@@ -590,6 +697,7 @@ def start_mapping(
     # 정책 연결이 유효하지 않으므로 초기화합니다.
     workplace.policies = {}
 
+    save_workplaces()
     return {
         "message":
             "지도 생성을 시작했습니다.",
@@ -712,6 +820,7 @@ def scan_complete(
         ),
     ]
 
+    save_workplaces()
     return {
         "message": (
             "지도 스캔이 완료되었습니다. "
@@ -824,6 +933,7 @@ def save_map_zones(
         validated_zones
     )
 
+    save_workplaces()
     return {
         "message":
             "구역이 저장되었습니다.",
@@ -910,6 +1020,7 @@ def complete_zone_setup(
         "object_setup"
     )
 
+    save_workplaces()
     return {
         "message": (
             "구역 설정이 완료되었습니다. "
@@ -991,6 +1102,7 @@ def save_map_objects(
         updated_objects
     )
 
+    save_workplaces()
     return {
         "message":
             "사물 정보가 저장되었습니다.",
@@ -1051,6 +1163,7 @@ def complete_mapping(
         policies
     )
 
+    save_workplaces()
     return {
         "message": (
             "Baseline Semantic Map이 "
@@ -1176,6 +1289,7 @@ def update_policies(
         completed_policies
     )
 
+    save_workplaces()
     return workplace.policies
 
 
@@ -1240,6 +1354,7 @@ def start_patrol(
 
     next_patrol_id += 1
 
+    save_workplaces()
     return patrol
 
 
@@ -1378,6 +1493,7 @@ def create_patrol_event(
 
     next_event_id += 1
 
+    save_workplaces()
     return event
 
 
@@ -1433,6 +1549,7 @@ def return_home(
         "returning"
     )
 
+    save_workplaces()
     return {
         "message":
             "Home 위치로 복귀합니다.",
@@ -1530,6 +1647,7 @@ def complete_patrol(
         completed_at.isoformat()
     )
 
+    save_workplaces()
     return patrol
 
 

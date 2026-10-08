@@ -19,6 +19,7 @@ from nav_msgs.msg import OccupancyGrid
 from sensor_msgs.msg import Image, LaserScan
 from tf2_ros import Buffer, TransformListener
 from server_sender import ServerSender
+from telemetry_sender import TelemetrySender
 
 from baseline_manager import BaselineManager
 from camera_manager import CameraManager
@@ -85,13 +86,20 @@ class ChangeDetectorNode(Node):
             parents=True,
             exist_ok=True,
         )
-                backend_url = os.environ.get(
+        backend_url = os.environ.get(
             "SAFETY_BACKEND_URL",
             "",
         ).strip()
 
         self.server_sender = ServerSender(
             backend_url=backend_url,
+        )
+
+        # 동일한 작업장 ID를 프런트의 workplace.id와 맞춥니다.
+        self.workplace_id = int(os.environ.get("SAFETY_WORKPLACE_ID", "1"))
+        self.telemetry_sender = TelemetrySender(
+            backend_url=backend_url,
+            workplace_id=self.workplace_id,
         )
 
         if self.server_sender.enabled:
@@ -203,6 +211,9 @@ class ChangeDetectorNode(Node):
             )
         )
 
+        # 변화 감지 여부와 관계없이 1초마다 현재 위치 갱신
+        self.pose_timer = self.create_timer(1.0, self.publish_robot_pose)
+
         self.get_logger().info(
             "Robot Change Detector started"
         )
@@ -275,6 +286,9 @@ class ChangeDetectorNode(Node):
             msg
         )
 
+        if self.telemetry_sender.enabled:
+            self.telemetry_sender.update_map(msg)
+
         self.get_logger().info(
             "Baseline map saved: "
             f"{self.baseline.width}x"
@@ -346,6 +360,14 @@ class ChangeDetectorNode(Node):
             ),
             "yaw": float(yaw),
         }
+
+
+    def publish_robot_pose(self):
+        if not self.telemetry_sender.enabled:
+            return
+        pose = self.get_robot_pose()
+        if pose is not None:
+            self.telemetry_sender.update_pose(pose)
 
     # ======================================================
     # Candidate creation
@@ -827,6 +849,7 @@ class ChangeDetectorNode(Node):
                 image_path=image_path,
                 robot_pose=robot_pose,
                 save_dir=self.event_dir,
+                workplace_id=self.workplace_id,
             )
         except Exception as exc:
             self.get_logger().error(
@@ -843,7 +866,7 @@ class ChangeDetectorNode(Node):
                 indent=2,
             )
         )
-                if self.server_sender.enabled:
+        if self.server_sender.enabled:
             self.server_sender.send_event(
                 event=event,
                 image_path=image_path,
@@ -913,6 +936,7 @@ def main(args=None):
     except KeyboardInterrupt:
         pass
     finally:
+        node.telemetry_sender.close()
         node.destroy_node()
         rclpy.shutdown()
 
