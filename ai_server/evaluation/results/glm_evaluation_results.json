@@ -1,0 +1,2154 @@
+[
+  {
+    "pair_id": 1,
+    "scene": 1,
+    "baseline": "1-1.jpg",
+    "current": "1-2.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle"
+        ],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로 점유는 50% 미만이지만 손공구가 새로 나타나 위험물체 변화가 확인됨"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병 이동, 상자 상태 변화, 손공구 추가가 함께 발생한 중간 수준 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle",
+          "box"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "A hand tool (screwdriver-like object) newly appears on the path, but the path is not substantially blocked."
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "Multiple noticeable changes: bottle and box moved and a hand tool added, corresponding to MEDIUM change degree."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "Environmental changes occurred (objects moved and a new object added), so any change is disallowed."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": true,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": true,
+      "policy_C": true,
+      "all_correct": true
+    },
+    "elapsed_seconds": 15.801703929901123,
+    "usage": {
+      "prompt_tokens": 1654,
+      "completion_tokens": 225,
+      "total_tokens": 1879,
+      "cost": 0.0001803,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 0,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0001803,
+        "upstream_inference_prompt_cost": 0.00012405,
+        "upstream_inference_completions_cost": 5.625e-05
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 0,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 2,
+    "scene": 1,
+    "baseline": "1-2.jpg",
+    "current": "1-3.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [],
+        "removed_objects": [
+          "hand_tool"
+        ],
+        "moved_objects": [
+          "bottle",
+          "box"
+        ],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "상자와 물병의 큰 위치 변화로 현재 통로의 상당 부분이 점유됨"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "여러 물체의 위치와 상태가 크게 변화함"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "box"
+        ],
+        "state_changed_objects": [
+          "bottle"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "The cardboard box moved and the water bottle changed from upright to fallen, but the changed objects occupy less than 50 percent of the usable path and no dangerous object is involved."
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "Multiple clearly noticeable changes occurred: the box changed location and the bottle changed state from upright to fallen, which constitutes a medium change magnitude."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "Environmental changes were detected (moved box and fallen bottle), and any environmental change is disallowed under this policy."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": false,
+      "path_occupancy": false,
+      "dangerous_object": true,
+      "policy_A": false,
+      "policy_B": false,
+      "policy_C": true,
+      "all_correct": false
+    },
+    "elapsed_seconds": 16.523254871368408,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 376,
+      "total_tokens": 1242,
+      "cost": 0.0002807,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 806,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0002807,
+        "upstream_inference_prompt_cost": 9.98e-06,
+        "upstream_inference_completions_cost": 0.00027072
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 136,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 3,
+    "scene": 1,
+    "baseline": "1-4.jpg",
+    "current": "1-5.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "hand_tools"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로 점유는 50% 미만이지만 위험할 수 있는 손공구의 위치 변화가 확인됨"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "동일 공구들의 위치가 소폭 변경된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "hand_tool"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "A hand tool on the ground has moved to a new position; it occupies less than 50 percent of the path but is a potentially hazardous hand tool."
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "A clearly noticeable movement of a hand tool occurred, corresponding to a MEDIUM change magnitude."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change (moved hand tool) was detected, and any change is disallowed under this policy."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": false,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": false,
+      "policy_C": true,
+      "all_correct": false
+    },
+    "elapsed_seconds": 15.653804063796997,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 367,
+      "total_tokens": 1233,
+      "cost": 0.000274418,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 797,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000274418,
+        "upstream_inference_prompt_cost": 1.0178e-05,
+        "upstream_inference_completions_cost": 0.00026424
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 144,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 4,
+    "scene": 2,
+    "baseline": "2-2.jpg",
+    "current": "2-1.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "작은 물병이 추가되었지만 통로의 50% 미만을 점유하고 위험물체가 아님"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "물병 1개가 추가된 작은 환경 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "A bottle was added in the middle of the path, but it occupies only a small portion of the usable walking path and is not a dangerous object."
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "A single small object (bottle) was added, which constitutes a SMALL change magnitude."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change (added bottle) occurred, and Policy C does not allow any environmental change."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": true,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": true,
+      "policy_C": true,
+      "all_correct": true
+    },
+    "elapsed_seconds": 10.131848096847534,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 255,
+      "total_tokens": 1121,
+      "cost": 0.000194724,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 754,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000194724,
+        "upstream_inference_prompt_cost": 1.1124e-05,
+        "upstream_inference_completions_cost": 0.0001836
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 36,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 5,
+    "scene": 2,
+    "baseline": "2-1.jpg",
+    "current": "2-3.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 크게 가까워졌지만 통로의 50% 이상을 막지는 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병 위치가 눈에 띄게 크게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "A bottle moved significantly closer into the walking path, but it occupies well under 50 percent of the usable path and is not a dangerous object."
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "The bottle's position changed clearly and noticeably, constituting a medium-magnitude environmental change."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "Policy C allows no environmental change; the bottle's movement is a change, so the risk level is HIGH."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": true,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": true,
+      "policy_C": true,
+      "all_correct": true
+    },
+    "elapsed_seconds": 16.843665838241577,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 351,
+      "total_tokens": 1217,
+      "cost": 0.000261754,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 849,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000261754,
+        "upstream_inference_prompt_cost": 9.034e-06,
+        "upstream_inference_completions_cost": 0.00025272
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 130,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 6,
+    "scene": 2,
+    "baseline": "2-2.jpg",
+    "current": "2-6.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle",
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "큰 상자와 물병이 추가되어 통로의 50% 이상을 실질적으로 방해함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "빈 통로에 큰 물체 두 개가 추가된 대규모 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle",
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "A bottle and a cardboard box were added to the previously clear path, but they occupy less than 50 percent of the usable walking path and neither is a dangerous object."
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "Two clearly noticeable objects (a bottle and a box) appeared in the scene, constituting a medium-magnitude environmental change."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "The no-change-allowed policy treats any environmental change as HIGH risk, and new objects (bottle and box) have appeared in the scene."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": false,
+      "path_occupancy": false,
+      "dangerous_object": true,
+      "policy_A": false,
+      "policy_B": false,
+      "policy_C": true,
+      "all_correct": false
+    },
+    "elapsed_seconds": 12.730326890945435,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 346,
+      "total_tokens": 1212,
+      "cost": 0.000259474,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 789,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000259474,
+        "upstream_inference_prompt_cost": 1.0354e-05,
+        "upstream_inference_completions_cost": 0.00024912
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 102,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 7,
+    "scene": 3,
+    "baseline": "3-1.jpg",
+    "current": "3-2.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "작은 변화지만 통로에 손공구가 추가되어 위험물체 변화로 판단함"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "손공구 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "A hand_tool-like object was added next to the toy car, but it occupies only a small portion of the path (UNDER_50), so the path is not substantially blocked."
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "A single small object was added to the scene, which corresponds to a SMALL change degree."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change was detected (a new object appeared), and any change is disallowed under this policy."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": true,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": true,
+      "policy_C": true,
+      "all_correct": true
+    },
+    "elapsed_seconds": 13.205129861831665,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 336,
+      "total_tokens": 1202,
+      "cost": 0.000252846,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 763,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000252846,
+        "upstream_inference_prompt_cost": 1.0926e-05,
+        "upstream_inference_completions_cost": 0.00024192
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 108,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 8,
+    "scene": 3,
+    "baseline": "3-4.jpg",
+    "current": "3-5.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌지만 통로의 50% 이상을 막지 않고 위험 공구가 아님"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 상태가 세워진 상태에서 쓰러진 상태로 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle"
+        ],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "The bottle changed from upright to lying on its side, but it is not a dangerous object and occupies less than 50 percent of the usable path."
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "A single small object changed state (bottle tipped over), which constitutes a SMALL change magnitude."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change occurred (bottle fell from upright to lying down), and Policy C does not allow any environmental change."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": false,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": false,
+      "policy_C": true,
+      "all_correct": false
+    },
+    "elapsed_seconds": 12.588680982589722,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 267,
+      "total_tokens": 1133,
+      "cost": 0.000201274,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 849,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000201274,
+        "upstream_inference_prompt_cost": 9.034e-06,
+        "upstream_inference_completions_cost": 0.00019224
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 42,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 9,
+    "scene": 3,
+    "baseline": "3-7.jpg",
+    "current": "3-6.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌으나 통로의 50% 이상을 점유하지 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 자세가 세워진 상태에서 쓰러진 상태로 뚜렷하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle"
+        ],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "The bottle changed from upright to lying on its side, but it occupies only a small portion of the path and is not a dangerous object."
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "A single small object underwent a minor state change (bottle tipped over), which corresponds to a SMALL change degree."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change occurred (bottle fell from upright to lying down), and any change is classified as HIGH under the no-change-allowed policy."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": false,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": false,
+      "policy_C": true,
+      "all_correct": false
+    },
+    "elapsed_seconds": 16.899486780166626,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 275,
+      "total_tokens": 1141,
+      "cost": 0.000207606,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 823,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000207606,
+        "upstream_inference_prompt_cost": 9.606e-06,
+        "upstream_inference_completions_cost": 0.000198
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 43,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 10,
+    "scene": 3,
+    "baseline": "3-8.jpg",
+    "current": "3-9.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "box: orientation_changed"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자의 방향이 크게 바뀌었지만 통로의 절반 이상을 막지는 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "상자의 방향 및 배치 상태가 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "The cardboard box changed state (flaps opened) but it does not substantially block the path and no dangerous object is involved."
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "Only a small state change occurred: the box flaps are open compared to the baseline."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change (box flaps opened) was detected, and any change is disallowed under this policy."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": false,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": false,
+      "policy_C": true,
+      "all_correct": false
+    },
+    "elapsed_seconds": 10.93699312210083,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 305,
+      "total_tokens": 1171,
+      "cost": 0.00022958,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 806,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.00022958,
+        "upstream_inference_prompt_cost": 9.98e-06,
+        "upstream_inference_completions_cost": 0.0002196
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 89,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 11,
+    "scene": 3,
+    "baseline": "3-12.jpg",
+    "current": "3-13.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자 1개가 추가되었지만 통로 점유가 50% 미만임"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "상자 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "A small cardboard box was added in the walking area, but it occupies less than 50 percent of the usable path and is not a dangerous object."
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "A single small object (cardboard box) was added, which constitutes a SMALL change magnitude."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change (added cardboard box) was detected, and Policy C does not allow any environmental change."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": true,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": true,
+      "policy_C": true,
+      "all_correct": true
+    },
+    "elapsed_seconds": 15.148168087005615,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 283,
+      "total_tokens": 1149,
+      "cost": 0.000215258,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 737,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000215258,
+        "upstream_inference_prompt_cost": 1.1498e-05,
+        "upstream_inference_completions_cost": 0.00020376
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 62,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 12,
+    "scene": 3,
+    "baseline": "3-13.jpg",
+    "current": "3-14.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자 위에 물병이 추가되었으며 통로를 크게 막지 않음"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "물병 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "A bottle was added on top of the box; it does not substantially block the path and is not a dangerous object."
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "A single small object (bottle) was added, which constitutes a SMALL change."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change (added bottle) occurred, and any change is not allowed under this policy."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": true,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": true,
+      "policy_C": true,
+      "all_correct": true
+    },
+    "elapsed_seconds": 11.579868793487549,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 269,
+      "total_tokens": 1135,
+      "cost": 0.000205178,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 737,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000205178,
+        "upstream_inference_prompt_cost": 1.1498e-05,
+        "upstream_inference_completions_cost": 0.00019368
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 57,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 13,
+    "scene": 3,
+    "baseline": "3-14.jpg",
+    "current": "3-15.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌지만 통로의 절반 이상을 막지 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 자세가 세워진 상태에서 쓰러진 상태로 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle"
+        ],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "The bottle that was standing upright on the box in the baseline is now lying down on top of the box. The change is small, does not obstruct the walking path, and involves no dangerous object."
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "A single small object (bottle) changed state from upright to fallen, which corresponds to a SMALL change magnitude."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change occurred (bottle state changed from upright to fallen), and Policy C does not allow any environmental change."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": false,
+      "path_occupancy": false,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": false,
+      "policy_C": true,
+      "all_correct": false
+    },
+    "elapsed_seconds": 13.249735116958618,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 363,
+      "total_tokens": 1229,
+      "cost": 0.000270394,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 849,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000270394,
+        "upstream_inference_prompt_cost": 9.034e-06,
+        "upstream_inference_completions_cost": 0.00026136
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 121,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 14,
+    "scene": 3,
+    "baseline": "3-15.jpg",
+    "current": "3-16.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로에 손공구가 추가되어 위험물체 변화로 판단함"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "손공구 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "A red hand tool has appeared in front of the box on the walking path. It occupies only a small portion of the path (UNDER_50), but since a hand tool is involved, Policy A assigns MEDIUM risk."
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "A single small object (hand tool) was added to the scene, which constitutes a SMALL change magnitude, mapping to LOW risk under Policy B."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change was detected (a new hand tool on the path). Under Policy C, any environmental change results in HIGH risk."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": true,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": true,
+      "policy_C": true,
+      "all_correct": true
+    },
+    "elapsed_seconds": 22.042278051376343,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 390,
+      "total_tokens": 1256,
+      "cost": 0.000292298,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 737,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000292298,
+        "upstream_inference_prompt_cost": 1.1498e-05,
+        "upstream_inference_completions_cost": 0.0002808
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 133,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 15,
+    "scene": 3,
+    "baseline": "3-18.jpg",
+    "current": "3-19.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "large_hand_tool"
+        ],
+        "removed_objects": [
+          "small_hand_tool"
+        ],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "큰 손공구가 통로를 가로질러 배치되어 통행을 크게 방해함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "작은 공구가 사라지고 훨씬 큰 공구가 추가된 대규모 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [
+          "hand_tool"
+        ],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "A long hand tool now lies across the floor in front of the box, replacing the previously present red object. The tool occupies only a small portion of the usable path (UNDER_50), but since it is a hand tool, the risk is MEDIUM."
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "A clearly noticeable change occurred: the red object in front of the box was replaced by a long hand tool lying across the floor, corresponding to a MEDIUM change magnitude."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change was detected (red object removed and a long hand tool added on the floor). Under the no-change-allowed policy, any environmental change results in HIGH risk."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": false,
+      "path_occupancy": false,
+      "dangerous_object": true,
+      "policy_A": false,
+      "policy_B": false,
+      "policy_C": true,
+      "all_correct": false
+    },
+    "elapsed_seconds": 20.325396060943604,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 601,
+      "total_tokens": 1467,
+      "cost": 0.0004427,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 806,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.0004427,
+        "upstream_inference_prompt_cost": 9.98e-06,
+        "upstream_inference_completions_cost": 0.00043272
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 318,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 16,
+    "scene": 3,
+    "baseline": "3-21.jpg",
+    "current": "3-22.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "large_fallen_bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "매우 큰 쓰러진 물병이 전방 통로를 크게 점유함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "큰 물체가 새로 추가되어 환경 변화의 규모가 큼"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "plastic_bag"
+        ],
+        "removed_objects": [],
+        "moved_objects": [
+          "box"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "A plastic bag was added and the box moved, but the changed objects occupy less than 50 percent of the usable path and no dangerous object is involved."
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "Multiple noticeable changes occurred: a large plastic bag appeared in the foreground and the box changed position, which constitutes a medium change magnitude."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "Environmental changes were detected (added plastic bag and moved box), and any change is disallowed under this policy."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": false,
+      "change_degree": false,
+      "path_occupancy": false,
+      "dangerous_object": true,
+      "policy_A": false,
+      "policy_B": false,
+      "policy_C": true,
+      "all_correct": false
+    },
+    "elapsed_seconds": 12.221850872039795,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 332,
+      "total_tokens": 1198,
+      "cost": 0.000250538,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 737,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000250538,
+        "upstream_inference_prompt_cost": 1.1498e-05,
+        "upstream_inference_completions_cost": 0.00023904
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 96,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 17,
+    "scene": 3,
+    "baseline": "3-23.jpg",
+    "current": "3-24.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "box"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자가 소폭 이동했으며 통로의 50% 이상을 막지 않음"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "상자의 위치가 소폭 변경된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "The box in the center changed from a closed cardboard box to an open slatted crate, but it occupies less than 50 percent of the path and no dangerous object is involved."
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "A single small-scale state change occurred: the box's appearance changed from closed cardboard to open slatted structure, with no movement or added objects."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change was detected (the box changed state), and under the no-change-allowed policy any change results in HIGH risk."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": false,
+      "change_degree": true,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": true,
+      "policy_C": true,
+      "all_correct": false
+    },
+    "elapsed_seconds": 16.066505908966064,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 459,
+      "total_tokens": 1325,
+      "cost": 0.000339316,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 858,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000339316,
+        "upstream_inference_prompt_cost": 8.836e-06,
+        "upstream_inference_completions_cost": 0.00033048
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 213,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 18,
+    "scene": 3,
+    "baseline": "3-24.jpg",
+    "current": "3-25.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "large_bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "카메라 가까이에 큰 물병이 추가되어 통로의 상당 부분을 점유함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "큰 물체가 새로 추가된 대규모 환경 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "A large bottle was added to the scene, but it occupies less than 50 percent of the usable walking path and is not a dangerous object."
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "A clearly noticeable large bottle appeared in the scene, constituting a medium-magnitude environmental change."
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "An environmental change (added bottle) occurred, and any change is disallowed under this policy."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": false,
+      "path_occupancy": false,
+      "dangerous_object": true,
+      "policy_A": false,
+      "policy_B": false,
+      "policy_C": true,
+      "all_correct": false
+    },
+    "elapsed_seconds": 16.274338006973267,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 363,
+      "total_tokens": 1229,
+      "cost": 0.000271142,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 815,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000271142,
+        "upstream_inference_prompt_cost": 9.782e-06,
+        "upstream_inference_completions_cost": 0.00026136
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 139,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 19,
+    "scene": 1,
+    "baseline": "1-1.jpg",
+    "current": "1-1.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "No meaningful environmental change detected between baseline and current images; the scene (cardboard box, water bottle, blue cylinder) is unchanged and the path is clear."
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "Change degree is NONE, corresponding to NORMAL risk under Policy B."
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "No environmental change occurred, so the no-change-allowed policy remains NORMAL."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": true,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": true,
+      "policy_C": true,
+      "all_correct": true
+    },
+    "elapsed_seconds": 19.243056774139404,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 277,
+      "total_tokens": 1143,
+      "cost": 0.000208276,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 858,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000208276,
+        "upstream_inference_prompt_cost": 8.836e-06,
+        "upstream_inference_completions_cost": 0.00019944
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 70,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 20,
+    "scene": 2,
+    "baseline": "2-2.jpg",
+    "current": "2-2.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "No meaningful environmental change detected between baseline and current images; the walking path is unobstructed."
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "Change degree is NONE, corresponding to NORMAL risk under the change magnitude policy."
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "No environmental change occurred, so the no-change-allowed policy is satisfied."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": true,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": true,
+      "policy_C": true,
+      "all_correct": true
+    },
+    "elapsed_seconds": 9.819425106048584,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 207,
+      "total_tokens": 1073,
+      "cost": 0.000158822,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 815,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000158822,
+        "upstream_inference_prompt_cost": 9.782e-06,
+        "upstream_inference_completions_cost": 0.00014904
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 10,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  },
+  {
+    "pair_id": 21,
+    "scene": 3,
+    "baseline": "3-12.jpg",
+    "current": "3-12.jpg",
+    "model_name": "glm_5_3_flash",
+    "model_id": "z-ai/glm-5.3-flash",
+    "status": "success",
+    "ground_truth": {
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      }
+    },
+    "prediction": {
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "No meaningful environmental change detected between baseline and current images; the scene, including the orange tool on the right and all background objects, is unchanged."
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "Change degree is NONE, so risk level maps to NORMAL."
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "No environmental change occurred, so the no-change-allowed policy results in NORMAL."
+        }
+      }
+    },
+    "scores": {
+      "change_detected": true,
+      "change_type": true,
+      "change_degree": true,
+      "path_occupancy": true,
+      "dangerous_object": true,
+      "policy_A": true,
+      "policy_B": true,
+      "policy_C": true,
+      "all_correct": true
+    },
+    "elapsed_seconds": 11.66642689704895,
+    "usage": {
+      "prompt_tokens": 866,
+      "completion_tokens": 255,
+      "total_tokens": 1121,
+      "cost": 0.000192436,
+      "is_byok": false,
+      "prompt_tokens_details": {
+        "cached_tokens": 858,
+        "cache_write_tokens": 0,
+        "audio_tokens": 0,
+        "video_tokens": 0
+      },
+      "cost_details": {
+        "upstream_inference_cost": 0.000192436,
+        "upstream_inference_prompt_cost": 8.836e-06,
+        "upstream_inference_completions_cost": 0.0001836
+      },
+      "completion_tokens_details": {
+        "reasoning_tokens": 51,
+        "image_tokens": 0,
+        "audio_tokens": 0
+      }
+    }
+  }
+]

@@ -1,7 +1,7 @@
 import json
 import math
-from pathlib import Path
 import os
+from pathlib import Path
 
 import rclpy
 from rclpy.duration import Duration
@@ -18,9 +18,10 @@ from rclpy.time import Time
 from nav_msgs.msg import OccupancyGrid
 from sensor_msgs.msg import Image, LaserScan
 from tf2_ros import Buffer, TransformListener
-from server_sender import ServerSender
-from telemetry_sender import TelemetrySender
 
+from baseline_image_manager import (
+    BaselineImageManager,
+)
 from baseline_manager import BaselineManager
 from camera_manager import CameraManager
 from change_detector import detect_change
@@ -47,12 +48,20 @@ from config import (
     YOLO_MODEL_PATH,
 )
 from event_manager import create_event
-from scan_observer import build_scan_observation
+from scan_observer import (
+    build_scan_observation,
+)
+from server_sender import ServerSender
 from state_machine import (
     DetectionState,
     DetectionStateMachine,
 )
+from telemetry_sender import TelemetrySender
 from yolo_detector import YoloDetector
+
+
+BASELINE_CAPTURE_DISTANCE = 0.35
+BASELINE_CAPTURE_YAW = math.radians(30.0)
 
 
 class ChangeDetectorNode(Node):
@@ -77,6 +86,14 @@ class ChangeDetectorNode(Node):
             self.output_dir
             / "events"
         )
+        self.baseline_image_dir = (
+            self.output_dir
+            / "baseline_images"
+        )
+        self.baseline_image_metadata = (
+            self.output_dir
+            / "baseline_images.json"
+        )
 
         self.capture_dir.mkdir(
             parents=True,
@@ -86,31 +103,61 @@ class ChangeDetectorNode(Node):
             parents=True,
             exist_ok=True,
         )
-        backend_url = os.environ.get(
-            "SAFETY_BACKEND_URL",
-            "",
-        ).strip()
 
-        self.server_sender = ServerSender(
-            backend_url=backend_url,
+        backend_url = (
+            os.environ.get(
+                "SAFETY_BACKEND_URL",
+                "",
+            ).strip()
         )
 
-        # 동일한 작업장 ID를 프런트의 workplace.id와 맞춥니다.
-        self.workplace_id = int(os.environ.get("SAFETY_WORKPLACE_ID", "1"))
-        self.telemetry_sender = TelemetrySender(
-            backend_url=backend_url,
-            workplace_id=self.workplace_id,
+        self.server_sender = (
+            ServerSender(
+                backend_url=backend_url,
+            )
+        )
+
+        self.workplace_id = int(
+            os.environ.get(
+                "SAFETY_WORKPLACE_ID",
+                "1",
+            )
+        )
+
+        self.telemetry_sender = (
+            TelemetrySender(
+                backend_url=backend_url,
+                workplace_id=(
+                    self.workplace_id
+                ),
+            )
         )
 
         if self.server_sender.enabled:
             self.get_logger().info(
-                f"Backend server: {backend_url}"
+                f"Backend server: "
+                f"{backend_url}"
             )
         else:
             self.get_logger().warning(
-                "SAFETY_BACKEND_URL is not set. "
+                "SAFETY_BACKEND_URL "
+                "is not set. "
                 "Server upload disabled."
             )
+
+        # ==================================================
+        # Patrol mode
+        # ==================================================
+
+        self.baseline_patrol = (
+            os.environ.get(
+                "SAFETY_BASELINE_PATROL",
+                "0",
+            ).strip()
+            == "1"
+        )
+
+        self.last_baseline_pose = None
 
         # ==================================================
         # Baseline
@@ -118,6 +165,17 @@ class ChangeDetectorNode(Node):
 
         self.baseline = (
             BaselineManager()
+        )
+
+        self.baseline_images = (
+            BaselineImageManager(
+                save_dir=(
+                    self.baseline_image_dir
+                ),
+                metadata_file=(
+                    self.baseline_image_metadata
+                ),
+            )
         )
 
         # ==================================================
@@ -162,9 +220,6 @@ class ChangeDetectorNode(Node):
         )
 
         self.current_change = None
-
-        # 여러 confirmation scan에서 본 영역을 합쳐서
-        # baseline 갱신에 사용
         self.current_cluster_points = set()
 
         # ==================================================
@@ -211,19 +266,44 @@ class ChangeDetectorNode(Node):
             )
         )
 
-        # 변화 감지 여부와 관계없이 1초마다 현재 위치 갱신
-        self.pose_timer = self.create_timer(1.0, self.publish_robot_pose)
+        self.pose_timer = (
+            self.create_timer(
+                1.0,
+                self.publish_robot_pose,
+            )
+        )
+
+        if self.baseline_patrol:
+            self.baseline_capture_timer = (
+                self.create_timer(
+                    1.0,
+                    self.capture_baseline_if_needed,
+                )
+            )
+        else:
+            self.baseline_capture_timer = None
 
         self.get_logger().info(
             "Robot Change Detector started"
         )
-        self.get_logger().info(
-            "ADDED + REMOVED enabled"
-        )
-        self.get_logger().info(
-            "No confirmed change = "
-            "no JPG / no JSON / no YOLO"
-        )
+
+        if self.baseline_patrol:
+            self.get_logger().info(
+                "Patrol mode: BASELINE"
+            )
+            self.get_logger().info(
+                "RGB baseline images will "
+                "be recorded during patrol."
+            )
+        else:
+            self.get_logger().info(
+                "Patrol mode: MONITORING"
+            )
+            self.get_logger().info(
+                "RGB is saved only after "
+                "a confirmed change."
+            )
+
         self.get_logger().info(
             f"Output: {self.output_dir}"
         )
@@ -275,7 +355,7 @@ class ChangeDetectorNode(Node):
             return None
 
     # ======================================================
-    # Baseline
+    # Baseline map
     # ======================================================
 
     def map_callback(self, msg):
@@ -287,7 +367,9 @@ class ChangeDetectorNode(Node):
         )
 
         if self.telemetry_sender.enabled:
-            self.telemetry_sender.update_map(msg)
+            self.telemetry_sender.update_map(
+                msg
+            )
 
         self.get_logger().info(
             "Baseline map saved: "
@@ -302,9 +384,9 @@ class ChangeDetectorNode(Node):
     # ======================================================
 
     def camera_callback(self, msg):
-        # 평소에는 저장하지 않음.
-        # 변화 확정 때 사용할 최신 frame만 보관.
-        self.camera.update_frame(msg)
+        self.camera.update_frame(
+            msg
+        )
 
     # ======================================================
     # Robot pose
@@ -358,16 +440,116 @@ class ChangeDetectorNode(Node):
             "y": float(
                 translation.y
             ),
-            "yaw": float(yaw),
+            "yaw": float(
+                yaw
+            ),
         }
 
-
     def publish_robot_pose(self):
-        if not self.telemetry_sender.enabled:
-            return
         pose = self.get_robot_pose()
-        if pose is not None:
-            self.telemetry_sender.update_pose(pose)
+
+        if pose is None:
+            return
+
+        if self.telemetry_sender.enabled:
+            self.telemetry_sender.update_pose(
+                pose
+            )
+
+    # ======================================================
+    # RGB baseline patrol
+    # ======================================================
+
+    def should_capture_baseline(
+        self,
+        pose,
+    ):
+        if self.last_baseline_pose is None:
+            return True
+
+        movement = math.hypot(
+            pose["x"]
+            - self.last_baseline_pose["x"],
+            pose["y"]
+            - self.last_baseline_pose["y"],
+        )
+
+        yaw_difference = (
+            BaselineImageManager
+            .angle_difference(
+                pose["yaw"],
+                self.last_baseline_pose[
+                    "yaw"
+                ],
+            )
+        )
+
+        return (
+            movement
+            >= BASELINE_CAPTURE_DISTANCE
+            or yaw_difference
+            >= BASELINE_CAPTURE_YAW
+        )
+
+    def capture_baseline_if_needed(
+        self
+    ):
+        if not self.baseline_patrol:
+            return
+
+        if not self.baseline.map_ready:
+            return
+
+        pose = self.get_robot_pose()
+
+        if pose is None:
+            return
+
+        if not self.should_capture_baseline(
+            pose
+        ):
+            return
+
+        image_path = (
+            self.camera.capture()
+        )
+
+        if image_path is None:
+            self.get_logger().warning(
+                "Baseline RGB capture "
+                "failed: camera frame "
+                "unavailable."
+            )
+            return
+
+        try:
+            item = (
+                self.baseline_images
+                .add_baseline(
+                    image_path=image_path,
+                    x=pose["x"],
+                    y=pose["y"],
+                    yaw=pose["yaw"],
+                )
+            )
+        except Exception as exc:
+            self.get_logger().error(
+                "Baseline RGB save failed: "
+                f"{exc}"
+            )
+            return
+
+        self.last_baseline_pose = (
+            pose.copy()
+        )
+
+        self.get_logger().info(
+            "BASELINE RGB SAVED: "
+            f'id={item["id"]}, '
+            f'x={pose["x"]:.2f}, '
+            f'y={pose["y"]:.2f}, '
+            f'yaw={pose["yaw"]:.2f}'
+        )
 
     # ======================================================
     # Candidate creation
@@ -388,18 +570,10 @@ class ChangeDetectorNode(Node):
 
         candidates = []
 
-        # --------------------------------------------------
-        # ADDED
-        #
-        # 이전 FREE
-        # 현재 LiDAR endpoint 존재
-        # --------------------------------------------------
-
         added_points = [
             point
-            for point in observation[
-                "hit_points"
-            ]
+            for point
+            in observation["hit_points"]
             if self.baseline.is_free(
                 point[0],
                 point[1],
@@ -437,22 +611,13 @@ class ChangeDetectorNode(Node):
                 {
                     "change": change,
                     "cluster": cluster,
-                    "required_count": (
-                        ADDED_CONFIRM_COUNT
+                    "required_count":
+                        ADDED_CONFIRM_COUNT,
+                    "score": len(
+                        cluster
                     ),
-                    "score": len(cluster),
                 }
             )
-
-        # --------------------------------------------------
-        # REMOVED
-        #
-        # 이전 OCCUPIED
-        # 현재 LiDAR ray가 그 cell을 통과해서
-        # 더 뒤쪽 endpoint까지 실제로 관측함
-        #
-        # "점이 안 찍혔다"만으로 제거 판정하지 않음.
-        # --------------------------------------------------
 
         removed_points = []
 
@@ -512,10 +677,11 @@ class ChangeDetectorNode(Node):
                 {
                     "change": change,
                     "cluster": cluster,
-                    "required_count": (
-                        REMOVED_CONFIRM_COUNT
+                    "required_count":
+                        REMOVED_CONFIRM_COUNT,
+                    "score": len(
+                        cluster
                     ),
-                    "score": len(cluster),
                 }
             )
 
@@ -533,7 +699,6 @@ class ChangeDetectorNode(Node):
             .get_state()
         )
 
-        # 확인 중에는 같은 종류 + 같은 위치 후보만 이어감.
         if (
             state
             == DetectionState.CONFIRMING
@@ -561,8 +726,12 @@ class ChangeDetectorNode(Node):
                     continue
 
                 position = (
-                    change["position"]["x"],
-                    change["position"]["y"],
+                    change[
+                        "position"
+                    ]["x"],
+                    change[
+                        "position"
+                    ]["y"],
                 )
 
                 d = distance(
@@ -575,7 +744,10 @@ class ChangeDetectorNode(Node):
                     <= POSITION_TOLERANCE
                 ):
                     matching.append(
-                        (d, candidate)
+                        (
+                            d,
+                            candidate,
+                        )
                     )
 
             if not matching:
@@ -587,7 +759,6 @@ class ChangeDetectorNode(Node):
 
             return matching[0][1]
 
-        # 새 감시 상태에서는 가장 강한 cluster부터.
         return max(
             candidates,
             key=lambda item: item[
@@ -599,10 +770,18 @@ class ChangeDetectorNode(Node):
     # Main scan callback
     # ======================================================
 
-    def scan_callback(self, scan_msg):
+    def scan_callback(
+        self,
+        scan_msg,
+    ):
         self.last_scan_stamp = (
             scan_msg.header.stamp
         )
+
+        # 첫 번째 기준 순찰에서는
+        # 변화 이벤트를 생성하지 않는다.
+        if self.baseline_patrol:
+            return
 
         state = (
             self.state_machine
@@ -667,10 +846,6 @@ class ChangeDetectorNode(Node):
             .get_state()
         )
 
-        # --------------------------------------------------
-        # 첫 발견
-        # --------------------------------------------------
-
         if (
             state
             == DetectionState.MONITORING
@@ -678,8 +853,11 @@ class ChangeDetectorNode(Node):
             self.current_change = (
                 change
             )
+
             self.current_cluster_points = (
-                set(cluster)
+                set(
+                    cluster
+                )
             )
 
             self.state_machine.start_confirmation(
@@ -691,17 +869,13 @@ class ChangeDetectorNode(Node):
             )
 
             self.get_logger().info(
-                f"CHANGE CANDIDATE: "
+                "CHANGE CANDIDATE: "
                 f"{event_type} "
                 f"{position} "
                 f"1/{required_count}"
             )
 
             return
-
-        # --------------------------------------------------
-        # 연속 확인
-        # --------------------------------------------------
 
         if (
             state
@@ -725,18 +899,16 @@ class ChangeDetectorNode(Node):
 
                 return
 
-            # 여기까지 왔으면 확정
             self.current_change = (
                 change
             )
 
-            # 여러 scan에서 관측된 변화 영역을 합침
             self.current_cluster_points.update(
                 cluster
             )
 
             self.get_logger().info(
-                f"CHANGE CONFIRMED: "
+                "CHANGE CONFIRMED: "
                 f"{event_type} "
                 f"{position}"
             )
@@ -759,8 +931,7 @@ class ChangeDetectorNode(Node):
         self.current_cluster_points = set()
 
     # ======================================================
-    # Confirmed:
-    # RealSense -> YOLO -> pose -> JSON -> baseline update
+    # Confirmed change
     # ======================================================
 
     def process_confirmed_change(self):
@@ -775,31 +946,71 @@ class ChangeDetectorNode(Node):
             self.reset_current_event()
             return
 
-        # 1. 변화가 확정된 경우에만 RealSense 저장
-        image_path = (
+        # 1. 현재 로봇 위치
+        robot_pose = (
+            self.get_robot_pose()
+        )
+
+        if robot_pose is None:
+            self.get_logger().warning(
+                "Robot pose unavailable. "
+                "Event not saved."
+            )
+            self.reset_current_event()
+            return
+
+        # 2. 1회차 순찰에서 저장한
+        # 가장 가까운 RGB baseline 검색
+        baseline_image_path = (
+            self.baseline_images
+            .get_image_path(
+                x=robot_pose["x"],
+                y=robot_pose["y"],
+                yaw=robot_pose["yaw"],
+            )
+        )
+
+        if baseline_image_path is None:
+            self.get_logger().warning(
+                "No matching RGB baseline "
+                "for current pose. "
+                "VLM event skipped."
+            )
+            self.reset_current_event()
+            return
+
+        # 3. 변화가 확정됐을 때만
+        # 현재 RGB 저장
+        current_image_path = (
             self.camera.capture()
         )
 
-        if image_path is None:
+        if current_image_path is None:
             self.get_logger().warning(
-                "Confirmed change, "
-                "but RGB frame unavailable. "
+                "Confirmed change, but "
+                "RGB frame unavailable. "
                 "Event not saved."
             )
             self.reset_current_event()
             return
 
         self.get_logger().info(
-            f"Captured: {image_path}"
+            "Current RGB captured: "
+            f"{current_image_path}"
+        )
+
+        self.get_logger().info(
+            "Matched baseline RGB: "
+            f"{baseline_image_path}"
         )
 
         self.state_machine.capture_completed()
 
-        # 2. 변화가 확정된 경우에만 YOLO 1회
+        # 4. YOLO
         try:
             detected_objects = (
                 self.yolo.detect(
-                    image_path
+                    current_image_path
                 )
             )
         except Exception as exc:
@@ -826,34 +1037,26 @@ class ChangeDetectorNode(Node):
 
         self.state_machine.analysis_completed()
 
-        # 3. Robot pose
-        robot_pose = (
-            self.get_robot_pose()
-        )
-
-        if robot_pose is None:
-            self.get_logger().warning(
-                "Robot pose unavailable. "
-                "Event not saved."
-            )
-            self.reset_current_event()
-            return
-
-        # 4. JSON
+        # 5. Event JSON
         try:
             event = create_event(
                 change=self.current_change,
                 detected_objects=(
                     detected_objects
                 ),
-                image_path=image_path,
+                image_path=(
+                    current_image_path
+                ),
                 robot_pose=robot_pose,
                 save_dir=self.event_dir,
-                workplace_id=self.workplace_id,
+                workplace_id=(
+                    self.workplace_id
+                ),
             )
         except Exception as exc:
             self.get_logger().error(
-                f"Event save failed: {exc}"
+                "Event save failed: "
+                f"{exc}"
             )
             self.reset_current_event()
             return
@@ -866,53 +1069,23 @@ class ChangeDetectorNode(Node):
                 indent=2,
             )
         )
+
+        # 6. Backend 전송
         if self.server_sender.enabled:
             self.server_sender.send_event(
                 event=event,
-                image_path=image_path,
+                baseline_image_path=(
+                    baseline_image_path
+                ),
+                current_image_path=(
+                    current_image_path
+                ),
             )
 
-        # 5. 새 상황을 baseline에 반영
-        cluster_points_for_update = list(
-            self.current_cluster_points
-        )
-
-        event_type = (
-            self.current_change[
-                "event_type"
-            ]
-        )
-
-        if event_type == "ADDED":
-            updated_cells = (
-                self.baseline
-                .mark_points_occupied(
-                    cluster_points_for_update,
-                    padding_cells=(
-                        BASELINE_PADDING_CELLS
-                    ),
-                )
-            )
-
-        elif event_type == "REMOVED":
-            updated_cells = (
-                self.baseline
-                .mark_points_free(
-                    cluster_points_for_update,
-                    padding_cells=(
-                        BASELINE_PADDING_CELLS
-                    ),
-                )
-            )
-
-        else:
-            updated_cells = 0
-
-        self.get_logger().info(
-            f"Baseline updated after "
-            f"{event_type}: "
-            f"{updated_cells} cells"
-        )
+        # 중요:
+        # 이후 순찰도 최초 baseline과 비교해야 하므로
+        # 변화가 생겼다고 baseline map/RGB를
+        # 자동 갱신하지 않는다.
 
         self.state_machine.processing_completed()
         self.clear_current_change()

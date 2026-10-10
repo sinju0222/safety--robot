@@ -1,0 +1,103 @@
+{
+  "test_type": "smoke_test",
+  "pair_id": 1,
+  "ground_truth": {
+    "change": {
+      "change_detected": true,
+      "change_type": "MIXED",
+      "added_objects": [
+        "hand_tool"
+      ],
+      "removed_objects": [],
+      "moved_objects": [
+        "bottle"
+      ],
+      "state_changed_objects": [
+        "box"
+      ],
+      "change_degree": "MEDIUM",
+      "path_occupancy": "UNDER_50",
+      "dangerous_object": true
+    },
+    "policy_results": {
+      "A": {
+        "risk_level": "MEDIUM",
+        "reason": "통로 점유는 50% 미만이지만 손공구가 새로 나타나 위험물체 변화가 확인됨"
+      },
+      "B": {
+        "risk_level": "MEDIUM",
+        "reason": "물병 이동, 상자 상태 변화, 손공구 추가가 함께 발생한 중간 수준 변화"
+      },
+      "C": {
+        "risk_level": "HIGH",
+        "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+      }
+    }
+  },
+  "results": [
+    {
+      "model_name": "glm_5_3_flash",
+      "model_id": "z-ai/glm-5.3-flash",
+      "baseline_image": "1-1.jpg",
+      "current_image": "1-2.jpg",
+      "json_valid": true,
+      "prediction": {
+        "change": {
+          "change_detected": true,
+          "change_type": "MIXED",
+          "added_objects": [
+            "screwdriver"
+          ],
+          "removed_objects": [],
+          "moved_objects": [
+            "water bottle",
+            "cardboard box"
+          ],
+          "state_changed_objects": [],
+          "change_degree": "MEDIUM",
+          "path_occupancy": "UNDER_50",
+          "dangerous_object": true
+        },
+        "policy_results": {
+          "A": {
+            "risk_level": "MEDIUM",
+            "reason": "A screwdriver, a hazardous tool, newly appeared on the walking path. Although it is small and occupies less than 50% of the path, the presence of a dangerous object requires MEDIUM risk."
+          },
+          "B": {
+            "risk_level": "MEDIUM",
+            "reason": "Multiple meaningful changes occurred: the water bottle moved from the right side to the center-left, the cardboard box shifted and rotated, and a screwdriver was added. The change is clearly noticeable but not large-scale."
+          },
+          "C": {
+            "risk_level": "HIGH",
+            "reason": "Any environmental change is prohibited. Objects were moved and a new object (screwdriver) appeared, so the risk level is HIGH regardless of severity."
+          }
+        }
+      },
+      "raw_response": "{\n  \"change\": {\n    \"change_detected\": true,\n    \"change_type\": \"MIXED\",\n    \"added_objects\": [\"screwdriver\"],\n    \"removed_objects\": [],\n    \"moved_objects\": [\"water bottle\", \"cardboard box\"],\n    \"state_changed_objects\": [],\n    \"change_degree\": \"MEDIUM\",\n    \"path_occupancy\": \"UNDER_50\",\n    \"dangerous_object\": true\n  },\n  \"policy_results\": {\n    \"A\": {\n      \"risk_level\": \"MEDIUM\",\n      \"reason\": \"A screwdriver, a hazardous tool, newly appeared on the walking path. Although it is small and occupies less than 50% of the path, the presence of a dangerous object requires MEDIUM risk.\"\n    },\n    \"B\": {\n      \"risk_level\": \"MEDIUM\",\n      \"reason\": \"Multiple meaningful changes occurred: the water bottle moved from the right side to the center-left, the cardboard box shifted and rotated, and a screwdriver was added. The change is clearly noticeable but not large-scale.\"\n    },\n    \"C\": {\n      \"risk_level\": \"HIGH\",\n      \"reason\": \"Any environmental change is prohibited. Objects were moved and a new object (screwdriver) appeared, so the risk level is HIGH regardless of severity.\"\n    }\n  }\n}",
+      "usage": {
+        "prompt_tokens": 1489,
+        "completion_tokens": 351,
+        "total_tokens": 1840,
+        "cost": 0.00039885,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.00039885,
+          "upstream_inference_prompt_cost": 0.00022335,
+          "upstream_inference_completions_cost": 0.0001755
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 74,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "elapsed_seconds": 3.437
+    }
+  ]
+}

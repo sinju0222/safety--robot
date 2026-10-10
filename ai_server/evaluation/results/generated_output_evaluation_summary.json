@@ -1,0 +1,53 @@
+{
+  "gemini_2_5_flash": {
+    "success_count": 27,
+    "error_count": 0,
+    "situation_factuality_average": 3.740740740740741,
+    "situation_factuality_percentage": 74.81481481481482,
+    "situation_completeness_average": 3.5555555555555554,
+    "situation_completeness_percentage": 71.1111111111111,
+    "action_relevance_average": 3.4814814814814814,
+    "action_relevance_percentage": 69.62962962962963,
+    "action_safety_average": 4.296296296296297,
+    "action_safety_percentage": 85.92592592592594,
+    "action_efficiency_average": 3.7037037037037037,
+    "action_efficiency_percentage": 74.07407407407408,
+    "generated_quality_average": 3.755555555555555,
+    "generated_quality_percentage": 75.1111111111111,
+    "judge_total_cost_usd": 0.04641175
+  },
+  "glm_5_3_flash": {
+    "success_count": 27,
+    "error_count": 0,
+    "situation_factuality_average": 3.8518518518518516,
+    "situation_factuality_percentage": 77.03703703703704,
+    "situation_completeness_average": 4.074074074074074,
+    "situation_completeness_percentage": 81.4814814814815,
+    "action_relevance_average": 3.962962962962963,
+    "action_relevance_percentage": 79.25925925925925,
+    "action_safety_average": 4.703703703703703,
+    "action_safety_percentage": 94.07407407407406,
+    "action_efficiency_average": 4.037037037037037,
+    "action_efficiency_percentage": 80.74074074074075,
+    "generated_quality_average": 4.125925925925926,
+    "generated_quality_percentage": 82.51851851851852,
+    "judge_total_cost_usd": 0.04943355
+  },
+  "gpt5_mini": {
+    "success_count": 27,
+    "error_count": 0,
+    "situation_factuality_average": 4.148148148148148,
+    "situation_factuality_percentage": 82.96296296296296,
+    "situation_completeness_average": 4.296296296296297,
+    "situation_completeness_percentage": 85.92592592592594,
+    "action_relevance_average": 3.962962962962963,
+    "action_relevance_percentage": 79.25925925925925,
+    "action_safety_average": 4.481481481481482,
+    "action_safety_percentage": 89.62962962962963,
+    "action_efficiency_average": 3.962962962962963,
+    "action_efficiency_percentage": 79.25925925925925,
+    "generated_quality_average": 4.17037037037037,
+    "generated_quality_percentage": 83.40740740740739,
+    "judge_total_cost_usd": 0.058934
+  }
+}

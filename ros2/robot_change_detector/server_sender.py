@@ -11,11 +11,13 @@ class ServerSender:
     def __init__(
         self,
         backend_url,
-        timeout=5.0,
+        timeout=30.0,
         retry_count=3,
         retry_delay=2.0,
     ):
-        self.backend_url = backend_url.rstrip("/")
+        self.backend_url = (
+            backend_url.rstrip("/")
+        )
         self.timeout = timeout
         self.retry_count = retry_count
         self.retry_delay = retry_delay
@@ -26,21 +28,30 @@ class ServerSender:
             target=self._worker_loop,
             daemon=True,
         )
-
         self.worker.start()
 
     @property
     def enabled(self):
-        return bool(self.backend_url)
+        return bool(
+            self.backend_url
+        )
 
-    def send_event(self, event, image_path):
+    def send_event(
+        self,
+        event,
+        baseline_image_path,
+        current_image_path,
+    ):
         if not self.enabled:
             return
 
         self.queue.put(
             {
                 "event": event,
-                "image_path": image_path,
+                "baseline_image_path":
+                    baseline_image_path,
+                "current_image_path":
+                    current_image_path,
             }
         )
 
@@ -48,56 +59,91 @@ class ServerSender:
         while True:
             data = self.queue.get()
 
-            event = data["event"]
-            image_path = data["image_path"]
+            try:
+                success = False
 
-            success = False
+                for attempt in range(
+                    self.retry_count
+                ):
+                    try:
+                        self._upload(
+                            event=data[
+                                "event"
+                            ],
+                            baseline_image_path=data[
+                                "baseline_image_path"
+                            ],
+                            current_image_path=data[
+                                "current_image_path"
+                            ],
+                        )
 
-            for attempt in range(self.retry_count):
-                try:
-                    self._upload(
-                        event,
-                        image_path,
-                    )
+                        success = True
+                        break
 
-                    success = True
-                    break
+                    except Exception as exc:
+                        print(
+                            "[SERVER] upload failed "
+                            f"{attempt + 1}/"
+                            f"{self.retry_count}: "
+                            f"{exc}"
+                        )
 
-                except Exception as e:
+                        if (
+                            attempt + 1
+                            < self.retry_count
+                        ):
+                            time.sleep(
+                                self.retry_delay
+                            )
+
+                if success:
                     print(
-                        f"[SERVER] upload failed "
-                        f"{attempt + 1}/{self.retry_count}: {e}"
+                        "[SERVER] "
+                        "event uploaded"
                     )
 
-                    time.sleep(
-                        self.retry_delay
-                    )
-
-            if success:
-                print(
-                    "[SERVER] event uploaded"
-                )
-
-            self.queue.task_done()
+            finally:
+                self.queue.task_done()
 
     def _upload(
         self,
         event,
-        image_path,
+        baseline_image_path,
+        current_image_path,
     ):
-        image_path = Path(
-            image_path
+        baseline_image_path = Path(
+            baseline_image_path
         )
+        current_image_path = Path(
+            current_image_path
+        )
+
+        if not baseline_image_path.exists():
+            raise FileNotFoundError(
+                "Baseline image not found: "
+                f"{baseline_image_path}"
+            )
+
+        if not current_image_path.exists():
+            raise FileNotFoundError(
+                "Current image not found: "
+                f"{current_image_path}"
+            )
 
         url = (
             f"{self.backend_url}"
             "/api/robot-events"
         )
 
-        with image_path.open(
-            "rb"
-        ) as image_file:
-
+        with (
+            baseline_image_path.open(
+                "rb"
+            ) as baseline_file,
+            current_image_path.open(
+                "rb"
+            ) as current_file,
+        ):
             response = requests.post(
                 url,
                 data={
@@ -108,11 +154,16 @@ class ServerSender:
                         )
                 },
                 files={
-                    "image": (
-                        image_path.name,
-                        image_file,
+                    "baseline_image": (
+                        baseline_image_path.name,
+                        baseline_file,
                         "image/jpeg",
-                    )
+                    ),
+                    "current_image": (
+                        current_image_path.name,
+                        current_file,
+                        "image/jpeg",
+                    ),
                 },
                 timeout=self.timeout,
             )

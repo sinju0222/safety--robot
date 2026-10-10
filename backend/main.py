@@ -10,7 +10,7 @@ from typing import Dict, List, Optional
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from robot_event_api import router as robot_event_router
+from robot_event_api import router as robot_event_router, HISTORY_FILE
 from telemetry_api import router as telemetry_router
 from pathlib import Path
 
@@ -1570,17 +1570,16 @@ def complete_patrol(
     workplace_id: int,
     patrol_id: int,
 ):
-
     workplace = get_workplace(
         workplace_id
     )
 
     patrol = next(
         (
-            patrol
-            for patrol
+            item
+            for item
             in workplace.patrols
-            if patrol["id"]
+            if item["id"]
             == patrol_id
         ),
         None,
@@ -1629,6 +1628,342 @@ def complete_patrol(
         ).total_seconds()
     )
 
+    # ==========================================
+    # Robot/VLM 이벤트 연결
+    #
+    # 같은 workplace이고,
+    # 현재 순찰 시작~종료 사이에
+    # 수신된 이벤트만 가져온다.
+    # ==========================================
+
+    robot_events = []
+
+    if HISTORY_FILE.exists():
+        try:
+            with HISTORY_FILE.open(
+                "r",
+                encoding="utf-8",
+            ) as history_file:
+                for line in history_file:
+                    line = line.strip()
+
+                    if not line:
+                        continue
+
+                    try:
+                        event = (
+                            json.loads(
+                                line
+                            )
+                        )
+                    except (
+                        json.JSONDecodeError
+                    ):
+                        continue
+
+                    if (
+                        event.get(
+                            "workplace_id"
+                        )
+                        != workplace_id
+                    ):
+                        continue
+
+                    received_raw = (
+                        event.get(
+                            "receivedAt"
+                        )
+                    )
+
+                    if not received_raw:
+                        continue
+
+                    try:
+                        received_at = (
+                            datetime.fromisoformat(
+                                received_raw
+                            )
+                        )
+                    except (
+                        ValueError,
+                        TypeError,
+                    ):
+                        continue
+
+                    compare_started = (
+                        started_at
+                    )
+
+                    compare_completed = (
+                        completed_at
+                    )
+
+                    if (
+                        received_at.tzinfo
+                        is not None
+                    ):
+                        received_at = (
+                            received_at.replace(
+                                tzinfo=None
+                            )
+                        )
+
+                    if (
+                        compare_started.tzinfo
+                        is not None
+                    ):
+                        compare_started = (
+                            compare_started.replace(
+                                tzinfo=None
+                            )
+                        )
+
+                    if (
+                        compare_completed.tzinfo
+                        is not None
+                    ):
+                        compare_completed = (
+                            compare_completed.replace(
+                                tzinfo=None
+                            )
+                        )
+
+                    if not (
+                        compare_started
+                        <= received_at
+                        <= compare_completed
+                    ):
+                        continue
+
+                    analysis = (
+                        event.get(
+                            "analysis"
+                        )
+                        or {}
+                    )
+
+                    analysis_change = (
+                        analysis.get(
+                            "change"
+                        )
+                        or {}
+                    )
+
+                    risk_assessment = (
+                        analysis.get(
+                            "risk_assessment"
+                        )
+                        or {}
+                    )
+
+                    situation = (
+                        analysis.get(
+                            "situation"
+                        )
+                        or {}
+                    )
+
+                    source_change = (
+                        event.get(
+                            "change"
+                        )
+                        or {}
+                    )
+
+                    source_position = (
+                        source_change.get(
+                            "position"
+                        )
+                        or {}
+                    )
+
+                    robot_pose = (
+                        event.get(
+                            "robot_pose"
+                        )
+                        or {}
+                    )
+
+                    x = (
+                        source_change.get(
+                            "x"
+                        )
+                    )
+
+                    if x is None:
+                        x = (
+                            source_position.get(
+                                "x"
+                            )
+                        )
+
+                    if x is None:
+                        x = (
+                            robot_pose.get(
+                                "x"
+                            )
+                        )
+
+                    y = (
+                        source_change.get(
+                            "y"
+                        )
+                    )
+
+                    if y is None:
+                        y = (
+                            source_position.get(
+                                "y"
+                            )
+                        )
+
+                    if y is None:
+                        y = (
+                            robot_pose.get(
+                                "y"
+                            )
+                        )
+
+                    robot_events.append(
+                        {
+                            "id":
+                                event.get(
+                                    "event_id"
+                                ),
+
+                            "event_id":
+                                event.get(
+                                    "event_id"
+                                ),
+
+                            "receivedAt":
+                                received_raw,
+
+                            "x":
+                                x,
+
+                            "y":
+                                y,
+
+                            "change_type":
+                                analysis_change.get(
+                                    "change_type"
+                                ),
+
+                            "risk_level":
+                                risk_assessment.get(
+                                    "risk_level"
+                                ),
+
+                            "hazard_present":
+                                risk_assessment.get(
+                                    "hazard_present"
+                                ),
+
+                            "hazard_types":
+                                risk_assessment.get(
+                                    "hazard_types"
+                                )
+                                or [],
+
+                            "situation":
+                                situation.get(
+                                    "summary"
+                                )
+                                or "",
+
+                            "recommended_actions":
+                                analysis.get(
+                                    "recommended_actions"
+                                )
+                                or [],
+
+                            "baselineImageUrl":
+                                event.get(
+                                    "baselineImageUrl"
+                                ),
+
+                            "imageUrl":
+                                event.get(
+                                    "imageUrl"
+                                ),
+
+                            "currentImageUrl":
+                                event.get(
+                                    "currentImageUrl"
+                                ),
+
+                            "analysis":
+                                analysis,
+
+                            "ai_status":
+                                event.get(
+                                    "ai_status"
+                                ),
+                        }
+                    )
+
+        except OSError as error:
+            print(
+                "Robot event history "
+                "load failed:",
+                error,
+            )
+
+    # event_id 기준 중복 제거
+    unique_events = []
+    seen_event_ids = set()
+
+    for event in robot_events:
+        event_id = (
+            event.get(
+                "event_id"
+            )
+        )
+
+        if (
+            event_id
+            and event_id
+            in seen_event_ids
+        ):
+            continue
+
+        if event_id:
+            seen_event_ids.add(
+                event_id
+            )
+
+        unique_events.append(
+            event
+        )
+
+    patrol[
+        "events"
+    ] = unique_events
+
+    patrol[
+        "changeCount"
+    ] = len(
+        unique_events
+    )
+
+    patrol[
+        "riskEventCount"
+    ] = len(
+        [
+            event
+            for event
+            in unique_events
+            if event.get(
+                "risk_level"
+            )
+            in {
+                "MEDIUM",
+                "HIGH",
+            }
+        ]
+    )
+
     patrol["status"] = (
         "completed"
     )
@@ -1648,6 +1983,7 @@ def complete_patrol(
     )
 
     save_workplaces()
+
     return patrol
 
 

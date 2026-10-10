@@ -1,0 +1,18 @@
+{
+  "glm_5_3_flash": {
+    "success_count": 21,
+    "error_count": 0,
+    "change_detected_accuracy": 1.0,
+    "change_type_accuracy": 0.9047619047619048,
+    "change_degree_accuracy": 0.5238095238095238,
+    "path_occupancy_accuracy": 0.7142857142857143,
+    "dangerous_object_accuracy": 1.0,
+    "policy_A_accuracy": 0.7619047619047619,
+    "policy_B_accuracy": 0.5238095238095238,
+    "policy_C_accuracy": 1.0,
+    "all_correct_accuracy": 0.47619047619047616,
+    "total_time_seconds": 308.9519441127777,
+    "average_time_seconds": 14.7119973387037,
+    "total_cost_usd": 0.005189034
+  }
+}

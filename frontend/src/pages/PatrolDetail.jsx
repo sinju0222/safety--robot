@@ -1,3 +1,102 @@
+const API_URL =
+  "http://127.0.0.1:8000";
+
+
+function getRiskInfo(
+  riskLevel
+) {
+  switch (riskLevel) {
+    case "HIGH":
+      return {
+        text: "HIGH",
+        color: "#b91c1c",
+        background: "#fee2e2",
+      };
+
+    case "MEDIUM":
+      return {
+        text: "MEDIUM",
+        color: "#c2410c",
+        background: "#ffedd5",
+      };
+
+    case "LOW":
+      return {
+        text: "LOW",
+        color: "#a16207",
+        background: "#fef9c3",
+      };
+
+    case "NORMAL":
+      return {
+        text: "NORMAL",
+        color: "#15803d",
+        background: "#dcfce7",
+      };
+
+    default:
+      return {
+        text: "UNKNOWN",
+        color: "#475569",
+        background: "#e2e8f0",
+      };
+  }
+}
+
+
+function getChangeLabel(
+  changeType
+) {
+  const labels = {
+    ADDED: "물체 추가",
+    REMOVED: "물체 제거",
+    MOVED: "물체 이동",
+    STATE_CHANGED: "상태 변화",
+    MIXED: "복합 변화",
+    NO_CHANGE: "변화 없음",
+  };
+
+  return (
+    labels[changeType] ||
+    changeType ||
+    "-"
+  );
+}
+
+
+function getHazardLabel(
+  hazardType
+) {
+  const labels = {
+    trip_hazard:
+      "걸림 위험",
+
+    object_on_path:
+      "통행 경로 물체",
+
+    path_obstruction:
+      "통행 방해",
+
+    sharp_tool_hazard:
+      "날카로운 공구 위험",
+
+    rolling_object_hazard:
+      "구름 물체 위험",
+
+    unstable_object:
+      "불안정한 물체",
+
+    falling_object_hazard:
+      "낙하 위험",
+  };
+
+  return (
+    labels[hazardType] ||
+    hazardType
+  );
+}
+
+
 function PatrolDetail({
   workplace,
   patrolId,
@@ -5,7 +104,7 @@ function PatrolDetail({
 }) {
   /*
    * ==========================================
-   * 선택된 Patrol 찾기
+   * 선택된 Patrol
    * ==========================================
    */
 
@@ -14,6 +113,7 @@ function PatrolDetail({
       (item) =>
         item.id === patrolId
     );
+
 
   /*
    * ==========================================
@@ -48,6 +148,7 @@ function PatrolDetail({
     )}`;
   };
 
+
   const formatDate = (
     date
   ) => {
@@ -62,67 +163,6 @@ function PatrolDetail({
     );
   };
 
-  /*
-   * ==========================================
-   * Semantic Zone Type
-   * ==========================================
-   */
-
-  const getZoneTypeName = (
-    type
-  ) => {
-    switch (type) {
-      case "work_area":
-        return "작업구역";
-
-      case "passage":
-        return "통로";
-
-      case "storage":
-        return "창고";
-
-      case "empty_area":
-        return "빈공간";
-
-      case "hazard_area":
-        return "위험구역";
-
-      case "restricted_area":
-        return "접근제한구역";
-
-      default:
-        return "미지정";
-    }
-  };
-
-  /*
-   * ==========================================
-   * Object Type
-   * ==========================================
-   */
-
-  const getObjectTypeName = (
-    type
-  ) => {
-    switch (type) {
-      case "water_bottle":
-        return "물병";
-
-      case "box":
-        return "상자";
-
-      case "pallet":
-        return "팔레트";
-
-      case "person":
-        return "사람";
-
-      default:
-        return (
-          type || "미지정"
-        );
-    }
-  };
 
   /*
    * ==========================================
@@ -149,6 +189,7 @@ function PatrolDetail({
 
         </header>
 
+
         <main className="patrol-detail-content">
 
           <div className="empty-dashboard">
@@ -169,8 +210,25 @@ function PatrolDetail({
     );
   }
 
+
   const events =
     patrol.events || [];
+
+
+  const riskEventCount =
+    events.filter(
+      (event) => {
+        const level =
+          event.risk_level ||
+          event.riskLevel;
+
+        return (
+          level === "MEDIUM" ||
+          level === "HIGH"
+        );
+      }
+    ).length;
+
 
   return (
     <div className="screen">
@@ -193,6 +251,7 @@ function PatrolDetail({
         </h2>
 
       </header>
+
 
       <main className="patrol-detail-content">
 
@@ -228,6 +287,7 @@ function PatrolDetail({
 
             </div>
 
+
             <div>
 
               <span>
@@ -235,21 +295,25 @@ function PatrolDetail({
               </span>
 
               <strong>
-                {patrol.changeCount ||
+                {events.length ||
+                  patrol.changeCount ||
                   0}
               </strong>
 
             </div>
 
+
             <div>
 
               <span>
-                위험 이벤트
+                확인 필요
               </span>
 
               <strong>
-                {patrol.riskEventCount ||
-                  0}
+                {events.length > 0
+                  ? riskEventCount
+                  : patrol.riskEventCount ||
+                    0}
               </strong>
 
             </div>
@@ -258,13 +322,15 @@ function PatrolDetail({
 
         </section>
 
+
         {/* ========================= */}
         {/* EVENT TITLE */}
         {/* ========================= */}
 
         <h3 className="event-title">
-          탐지 결과
+          AI 변화 분석 결과
         </h3>
+
 
         {/* ========================= */}
         {/* NO EVENT */}
@@ -286,270 +352,496 @@ function PatrolDetail({
           </div>
         )}
 
+
         {/* ========================= */}
         {/* EVENTS */}
         {/* ========================= */}
 
         {events.map(
-          (event, index) => (
-            <section
-              className="event-card"
-              key={
-                event.id ||
-                index
-              }
-            >
+          (event, index) => {
+            const riskLevel =
+              event.risk_level ||
+              event.riskLevel ||
+              "NORMAL";
 
-              {/* ================= */}
-              {/* EVENT HEADER */}
-              {/* ================= */}
 
-              <div className="event-card-header">
+            const risk =
+              getRiskInfo(
+                riskLevel
+              );
 
-                <span>
-                  변화 {index + 1}
-                </span>
+
+            const changeType =
+              event.change_type ||
+              event.changeType ||
+              event.analysis
+                ?.change
+                ?.change_type ||
+              "-";
+
+
+            const situation =
+              event.situation ||
+              event.reason ||
+              event.analysis
+                ?.situation
+                ?.summary ||
+              "상황 분석 결과가 없습니다.";
+
+
+            const hazardTypes =
+              event.hazard_types ||
+              event.analysis
+                ?.risk_assessment
+                ?.hazard_types ||
+              [];
+
+
+            const actions =
+              event.recommended_actions ||
+              event.analysis
+                ?.recommended_actions ||
+              [];
+
+
+            const baselineImageUrl =
+              event.baselineImageUrl ||
+              null;
+
+
+            const currentImageUrl =
+              event.currentImageUrl ||
+              event.imageUrl ||
+              event.image ||
+              null;
+
+
+            const x =
+              event.x ??
+              event.position?.x ??
+              "-";
+
+
+            const y =
+              event.y ??
+              event.position?.y ??
+              "-";
+
+
+            return (
+              <section
+                className="event-card"
+                key={
+                  event.event_id ||
+                  event.id ||
+                  index
+                }
+              >
+
+                {/* ================= */}
+                {/* EVENT HEADER */}
+                {/* ================= */}
+
+                <div className="event-card-header">
+
+                  <span>
+                    변화 {index + 1}
+                  </span>
+
+                  <div
+                    style={{
+                      padding:
+                        "6px 10px",
+
+                      borderRadius:
+                        "7px",
+
+                      color:
+                        risk.color,
+
+                      background:
+                        risk.background,
+
+                      fontWeight:
+                        "700",
+                    }}
+                  >
+                    {risk.text}
+                  </div>
+
+                </div>
+
+
+                {/* ================= */}
+                {/* IMAGE COMPARISON */}
+                {/* ================= */}
 
                 <div
-                  className={
-                    event.riskLevel ===
-                    "HIGH"
-                      ? "risk-high"
-                      : "risk-normal"
-                  }
+                  style={{
+                    display:
+                      "grid",
+
+                    gridTemplateColumns:
+                      "1fr 1fr",
+
+                    gap:
+                      "10px",
+
+                    marginTop:
+                      "18px",
+
+                    marginBottom:
+                      "20px",
+                  }}
                 >
-                  {event.riskLevel ||
-                    "NORMAL"}
-                </div>
 
-              </div>
+                  <div>
 
-              {/* ================= */}
-              {/* IMAGE */}
-              {/* ================= */}
+                    <div
+                      style={{
+                        marginBottom:
+                          "7px",
 
-              {event.image ? (
-                <img
-                  className="event-image"
-                  src={
-                    event.image
-                  }
-                  alt="변화 탐지"
-                />
-              ) : (
-                <div className="event-image">
+                        fontSize:
+                          "13px",
 
-                  <span>
-                    📷
-                  </span>
+                        color:
+                          "#64748b",
+                      }}
+                    >
+                      기준 이미지
+                    </div>
 
-                  <strong>
-                    변화 탐지 이미지
-                  </strong>
+                    {baselineImageUrl ? (
+                      <img
+                        src={
+                          baselineImageUrl.startsWith(
+                            "http"
+                          )
+                            ? baselineImageUrl
+                            : `${API_URL}${baselineImageUrl}`
+                        }
+                        alt="기준 이미지"
+                        style={{
+                          width:
+                            "100%",
 
-                  <small>
-                    실제 로봇 연동 후
-                    캡처 이미지가
-                    표시됩니다.
-                  </small>
+                          aspectRatio:
+                            "4 / 3",
 
-                </div>
-              )}
+                          objectFit:
+                            "cover",
 
-              {/* ================= */}
-              {/* INFORMATION */}
-              {/* ================= */}
+                          borderRadius:
+                            "10px",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className="event-image"
+                      >
+                        <span>
+                          📷
+                        </span>
 
-              <div className="event-information">
-
-                {/* 탐지 객체 */}
-
-                <div>
-
-                  <span>
-                    탐지 객체
-                  </span>
-
-                  <strong>
-                    {event.objectName ||
-                      "미지정"}
-                  </strong>
-
-                </div>
-
-                {/* 객체 유형 */}
-
-                <div>
-
-                  <span>
-                    객체 유형
-                  </span>
-
-                  <strong>
-                    {getObjectTypeName(
-                      event.objectType
+                        <small>
+                          기준 이미지 없음
+                        </small>
+                      </div>
                     )}
-                  </strong>
 
-                </div>
+                  </div>
 
-                {/* Semantic Zone */}
 
-                <div>
+                  <div>
 
-                  <span>
-                    발생 구역
-                  </span>
+                    <div
+                      style={{
+                        marginBottom:
+                          "7px",
 
-                  <strong>
-                    {event.zone ||
-                      "구역 외부"}
-                  </strong>
+                        fontSize:
+                          "13px",
 
-                </div>
+                        color:
+                          "#64748b",
+                      }}
+                    >
+                      현재 이미지
+                    </div>
 
-                {/* Zone Type */}
+                    {currentImageUrl ? (
+                      <img
+                        src={
+                          currentImageUrl.startsWith(
+                            "http"
+                          )
+                            ? currentImageUrl
+                            : `${API_URL}${currentImageUrl}`
+                        }
+                        alt="현재 이미지"
+                        style={{
+                          width:
+                            "100%",
 
-                <div>
+                          aspectRatio:
+                            "4 / 3",
 
-                  <span>
-                    공간 유형
-                  </span>
+                          objectFit:
+                            "cover",
 
-                  <strong>
-                    {getZoneTypeName(
-                      event.zoneType
+                          borderRadius:
+                            "10px",
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className="event-image"
+                      >
+                        <span>
+                          📷
+                        </span>
+
+                        <small>
+                          현재 이미지 없음
+                        </small>
+                      </div>
                     )}
-                  </strong>
+
+                  </div>
 
                 </div>
 
-                {/* Position */}
 
-                <div>
+                {/* ================= */}
+                {/* BASIC INFO */}
+                {/* ================= */}
 
-                  <span>
-                    위치
-                  </span>
+                <div className="event-information">
 
-                  <strong>
-                    X{" "}
-                    {event.position?.x ??
-                      "-"}
-                    {" / "}
-                    Y{" "}
-                    {event.position?.y ??
-                      "-"}
-                  </strong>
-
-                </div>
-
-                {/* Distance */}
-
-                {event.distanceToCobot !=
-                  null && (
                   <div>
 
                     <span>
-                      협동로봇 거리
+                      변화 유형
                     </span>
 
                     <strong>
-                      {
-                        event.distanceToCobot
-                      }
-                      m
+                      {getChangeLabel(
+                        changeType
+                      )}
                     </strong>
 
                   </div>
-                )}
 
-                {/* Risk Score */}
 
-                <div>
+                  <div>
 
-                  <span>
-                    위험 점수
-                  </span>
+                    <span>
+                      위험 등급
+                    </span>
 
-                  <strong>
-                    {event.riskScore ??
-                      0}
-                    점
-                  </strong>
+                    <strong>
+                      {riskLevel}
+                    </strong>
 
-                </div>
+                  </div>
 
-                {/* Risk Level */}
 
-                <div>
+                  <div>
 
-                  <span>
-                    위험 등급
-                  </span>
+                    <span>
+                      변화 위치
+                    </span>
 
-                  <strong>
-                    {event.riskLevel ||
-                      "NORMAL"}
-                  </strong>
+                    <strong>
+                      X {x}
+                      {" / "}
+                      Y {y}
+                    </strong>
+
+                  </div>
 
                 </div>
 
-                {/* Policy */}
 
-                <div>
+                {/* ================= */}
+                {/* SITUATION */}
+                {/* ================= */}
 
-                  <span>
-                    적용 정책
-                  </span>
+                <div
+                  style={{
+                    marginTop:
+                      "20px",
+
+                    padding:
+                      "16px",
+
+                    borderRadius:
+                      "10px",
+
+                    background:
+                      "#f8fafc",
+                  }}
+                >
 
                   <strong>
-                    {event.policyName ||
-                      "해당 없음"}
+                    상황 분석
                   </strong>
+
+                  <p
+                    style={{
+                      margin:
+                        "8px 0 0",
+
+                      lineHeight:
+                        "1.6",
+                    }}
+                  >
+                    {situation}
+                  </p>
 
                 </div>
 
-              </div>
 
-              {/* ================= */}
-              {/* ROBOT ACTION */}
-              {/* ================= */}
+                {/* ================= */}
+                {/* HAZARDS */}
+                {/* ================= */}
 
-              {event.action ===
-                "COBOT_STOP" && (
-                <div className="cobot-stop-box">
-
-                  <strong>
-                    협동로봇 STOP
-                  </strong>
-
-                  <span>
-                    위험요소가 탐지되어
-                    협동로봇 정지 정책이
-                    적용되었습니다.
-                  </span>
-
-                </div>
-              )}
-
-              {!event.action && (
-                <div className="event-normal-box">
+                <div
+                  style={{
+                    marginTop:
+                      "20px",
+                  }}
+                >
 
                   <strong>
-                    추가 제어 없음
+                    위험요인
                   </strong>
 
-                  <span>
-                    현재 적용된 제어
-                    명령이 없습니다.
-                  </span>
+                  <div
+                    style={{
+                      display:
+                        "flex",
+
+                      flexWrap:
+                        "wrap",
+
+                      gap:
+                        "7px",
+
+                      marginTop:
+                        "9px",
+                    }}
+                  >
+
+                    {hazardTypes.length >
+                    0 ? (
+                      hazardTypes.map(
+                        (
+                          hazard
+                        ) => (
+                          <span
+                            key={
+                              hazard
+                            }
+                            style={{
+                              padding:
+                                "6px 9px",
+
+                              borderRadius:
+                                "7px",
+
+                              background:
+                                "#fef2f2",
+
+                              color:
+                                "#b91c1c",
+
+                              fontSize:
+                                "13px",
+                            }}
+                          >
+                            {getHazardLabel(
+                              hazard
+                            )}
+                          </span>
+                        )
+                      )
+                    ) : (
+                      <span>
+                        별도 위험요인 없음
+                      </span>
+                    )}
+
+                  </div>
 
                 </div>
-              )}
 
-            </section>
-          )
+
+                {/* ================= */}
+                {/* RECOMMENDED ACTIONS */}
+                {/* ================= */}
+
+                <div
+                  style={{
+                    marginTop:
+                      "20px",
+
+                    padding:
+                      "16px",
+
+                    borderRadius:
+                      "10px",
+
+                    background:
+                      "#eff6ff",
+                  }}
+                >
+
+                  <strong>
+                    권장 안전조치
+                  </strong>
+
+                  {actions.length >
+                  0 ? (
+                    <ol
+                      style={{
+                        margin:
+                          "9px 0 0",
+
+                        paddingLeft:
+                          "20px",
+
+                        lineHeight:
+                          "1.7",
+                      }}
+                    >
+                      {actions.map(
+                        (
+                          action,
+                          actionIndex
+                        ) => (
+                          <li
+                            key={
+                              actionIndex
+                            }
+                          >
+                            {action}
+                          </li>
+                        )
+                      )}
+                    </ol>
+                  ) : (
+                    <p>
+                      별도 권장조치 없음
+                    </p>
+                  )}
+
+                </div>
+
+              </section>
+            );
+          }
         )}
 
       </main>
@@ -557,5 +849,6 @@ function PatrolDetail({
     </div>
   );
 }
+
 
 export default PatrolDetail;

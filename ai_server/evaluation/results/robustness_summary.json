@@ -1,0 +1,174 @@
+{
+  "overall_by_model": {
+    "qwen3_vl_32b": {
+      "success_count": 84,
+      "error_count": 0,
+      "change_detected_accuracy": 1.0,
+      "change_type_accuracy": 0.9047619047619048,
+      "change_degree_accuracy": 0.6904761904761905,
+      "path_occupancy_accuracy": 0.8095238095238095,
+      "dangerous_object_accuracy": 0.9880952380952381,
+      "policy_A_accuracy": 0.6904761904761905,
+      "policy_B_accuracy": 0.7023809523809523,
+      "policy_C_accuracy": 1.0,
+      "all_correct_accuracy": 0.5,
+      "average_time_seconds": 4.987209019206819,
+      "total_time_seconds": 418.9255576133728,
+      "total_cost_usd": 0.019104384
+    },
+    "gemini_2_5_flash": {
+      "success_count": 84,
+      "error_count": 0,
+      "change_detected_accuracy": 1.0,
+      "change_type_accuracy": 0.7738095238095238,
+      "change_degree_accuracy": 0.6547619047619048,
+      "path_occupancy_accuracy": 0.6904761904761905,
+      "dangerous_object_accuracy": 0.9285714285714286,
+      "policy_A_accuracy": 0.7619047619047619,
+      "policy_B_accuracy": 0.6547619047619048,
+      "policy_C_accuracy": 1.0,
+      "all_correct_accuracy": 0.5595238095238095,
+      "average_time_seconds": 3.286629557609558,
+      "total_time_seconds": 276.0768828392029,
+      "total_cost_usd": 0.08250930000000001
+    }
+  },
+  "by_augmentation": {
+    "blur": {
+      "qwen3_vl_32b": {
+        "success_count": 21,
+        "error_count": 0,
+        "change_detected_accuracy": 1.0,
+        "change_type_accuracy": 0.9047619047619048,
+        "change_degree_accuracy": 0.6666666666666666,
+        "path_occupancy_accuracy": 0.8571428571428571,
+        "dangerous_object_accuracy": 1.0,
+        "policy_A_accuracy": 0.7142857142857143,
+        "policy_B_accuracy": 0.6666666666666666,
+        "policy_C_accuracy": 1.0,
+        "all_correct_accuracy": 0.5714285714285714,
+        "average_time_seconds": 5.88160913331168,
+        "total_time_seconds": 123.51379179954529,
+        "total_cost_usd": 0.004775784
+      },
+      "gemini_2_5_flash": {
+        "success_count": 21,
+        "error_count": 0,
+        "change_detected_accuracy": 1.0,
+        "change_type_accuracy": 0.8095238095238095,
+        "change_degree_accuracy": 0.7619047619047619,
+        "path_occupancy_accuracy": 0.7142857142857143,
+        "dangerous_object_accuracy": 0.9523809523809523,
+        "policy_A_accuracy": 0.8095238095238095,
+        "policy_B_accuracy": 0.7619047619047619,
+        "policy_C_accuracy": 1.0,
+        "all_correct_accuracy": 0.6666666666666666,
+        "average_time_seconds": 5.5503979069846014,
+        "total_time_seconds": 116.55835604667664,
+        "total_cost_usd": 0.0204263
+      }
+    },
+    "bright": {
+      "qwen3_vl_32b": {
+        "success_count": 21,
+        "error_count": 0,
+        "change_detected_accuracy": 1.0,
+        "change_type_accuracy": 0.9047619047619048,
+        "change_degree_accuracy": 0.7619047619047619,
+        "path_occupancy_accuracy": 0.8571428571428571,
+        "dangerous_object_accuracy": 0.9523809523809523,
+        "policy_A_accuracy": 0.7142857142857143,
+        "policy_B_accuracy": 0.7619047619047619,
+        "policy_C_accuracy": 1.0,
+        "all_correct_accuracy": 0.47619047619047616,
+        "average_time_seconds": 4.9735245023454935,
+        "total_time_seconds": 104.44401454925537,
+        "total_cost_usd": 0.0047866
+      },
+      "gemini_2_5_flash": {
+        "success_count": 21,
+        "error_count": 0,
+        "change_detected_accuracy": 1.0,
+        "change_type_accuracy": 0.7142857142857143,
+        "change_degree_accuracy": 0.5714285714285714,
+        "path_occupancy_accuracy": 0.6666666666666666,
+        "dangerous_object_accuracy": 0.9047619047619048,
+        "policy_A_accuracy": 0.7142857142857143,
+        "policy_B_accuracy": 0.5714285714285714,
+        "policy_C_accuracy": 1.0,
+        "all_correct_accuracy": 0.47619047619047616,
+        "average_time_seconds": 2.4880353723253523,
+        "total_time_seconds": 52.2487428188324,
+        "total_cost_usd": 0.0205935
+      }
+    },
+    "dark": {
+      "qwen3_vl_32b": {
+        "success_count": 21,
+        "error_count": 0,
+        "change_detected_accuracy": 1.0,
+        "change_type_accuracy": 0.9047619047619048,
+        "change_degree_accuracy": 0.6666666666666666,
+        "path_occupancy_accuracy": 0.8095238095238095,
+        "dangerous_object_accuracy": 1.0,
+        "policy_A_accuracy": 0.7619047619047619,
+        "policy_B_accuracy": 0.6666666666666666,
+        "policy_C_accuracy": 1.0,
+        "all_correct_accuracy": 0.5714285714285714,
+        "average_time_seconds": 4.050576993397304,
+        "total_time_seconds": 85.06211686134338,
+        "total_cost_usd": 0.004760808
+      },
+      "gemini_2_5_flash": {
+        "success_count": 21,
+        "error_count": 0,
+        "change_detected_accuracy": 1.0,
+        "change_type_accuracy": 0.8095238095238095,
+        "change_degree_accuracy": 0.6190476190476191,
+        "path_occupancy_accuracy": 0.6190476190476191,
+        "dangerous_object_accuracy": 0.9047619047619048,
+        "policy_A_accuracy": 0.7142857142857143,
+        "policy_B_accuracy": 0.6190476190476191,
+        "policy_C_accuracy": 1.0,
+        "all_correct_accuracy": 0.5238095238095238,
+        "average_time_seconds": 2.3779171875544955,
+        "total_time_seconds": 49.93626093864441,
+        "total_cost_usd": 0.020751
+      }
+    },
+    "noise": {
+      "qwen3_vl_32b": {
+        "success_count": 21,
+        "error_count": 0,
+        "change_detected_accuracy": 1.0,
+        "change_type_accuracy": 0.9047619047619048,
+        "change_degree_accuracy": 0.6666666666666666,
+        "path_occupancy_accuracy": 0.7142857142857143,
+        "dangerous_object_accuracy": 1.0,
+        "policy_A_accuracy": 0.5714285714285714,
+        "policy_B_accuracy": 0.7142857142857143,
+        "policy_C_accuracy": 1.0,
+        "all_correct_accuracy": 0.38095238095238093,
+        "average_time_seconds": 5.043125447772798,
+        "total_time_seconds": 105.90563440322876,
+        "total_cost_usd": 0.004781192
+      },
+      "gemini_2_5_flash": {
+        "success_count": 21,
+        "error_count": 0,
+        "change_detected_accuracy": 1.0,
+        "change_type_accuracy": 0.7619047619047619,
+        "change_degree_accuracy": 0.6666666666666666,
+        "path_occupancy_accuracy": 0.7619047619047619,
+        "dangerous_object_accuracy": 0.9523809523809523,
+        "policy_A_accuracy": 0.8095238095238095,
+        "policy_B_accuracy": 0.6666666666666666,
+        "policy_C_accuracy": 1.0,
+        "all_correct_accuracy": 0.5714285714285714,
+        "average_time_seconds": 2.7301677635737827,
+        "total_time_seconds": 57.33352303504944,
+        "total_cost_usd": 0.0207385
+      }
+    }
+  }
+}

@@ -1,0 +1,2984 @@
+{
+  "dataset": {
+    "name": "real_turtlebot_robustness_evaluation",
+    "version": "augmented_v1",
+    "source": "real_turtlebot_images",
+    "original_image_count": 36,
+    "original_pair_count": 21,
+    "augmentations": [
+      "dark",
+      "bright",
+      "blur",
+      "noise"
+    ],
+    "augmented_pair_count": 84,
+    "pairing_rule": "Baseline and Current use the same augmentation. Only same-scene pairs are used.",
+    "note": "Augmentation changes camera conditions only. Ground Truth labels remain identical to the original pairs."
+  },
+  "pairs": [
+    {
+      "id": 1,
+      "scene": 1,
+      "baseline": "1-1.jpg",
+      "current": "1-2.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle"
+        ],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로 점유는 50% 미만이지만 손공구가 새로 나타나 위험물체 변화가 확인됨"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병 이동, 상자 상태 변화, 손공구 추가가 함께 발생한 중간 수준 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 1,
+      "augmentation": "dark"
+    },
+    {
+      "id": 2,
+      "scene": 1,
+      "baseline": "1-2.jpg",
+      "current": "1-3.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [],
+        "removed_objects": [
+          "hand_tool"
+        ],
+        "moved_objects": [
+          "bottle",
+          "box"
+        ],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "상자와 물병의 큰 위치 변화로 현재 통로의 상당 부분이 점유됨"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "여러 물체의 위치와 상태가 크게 변화함"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 2,
+      "augmentation": "dark"
+    },
+    {
+      "id": 3,
+      "scene": 1,
+      "baseline": "1-4.jpg",
+      "current": "1-5.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "hand_tools"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로 점유는 50% 미만이지만 위험할 수 있는 손공구의 위치 변화가 확인됨"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "동일 공구들의 위치가 소폭 변경된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 3,
+      "augmentation": "dark"
+    },
+    {
+      "id": 4,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-1.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "작은 물병이 추가되었지만 통로의 50% 미만을 점유하고 위험물체가 아님"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "물병 1개가 추가된 작은 환경 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 4,
+      "augmentation": "dark"
+    },
+    {
+      "id": 5,
+      "scene": 2,
+      "baseline": "2-1.jpg",
+      "current": "2-3.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 크게 가까워졌지만 통로의 50% 이상을 막지는 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병 위치가 눈에 띄게 크게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 5,
+      "augmentation": "dark"
+    },
+    {
+      "id": 6,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-6.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle",
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "큰 상자와 물병이 추가되어 통로의 50% 이상을 실질적으로 방해함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "빈 통로에 큰 물체 두 개가 추가된 대규모 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 6,
+      "augmentation": "dark"
+    },
+    {
+      "id": 7,
+      "scene": 3,
+      "baseline": "3-1.jpg",
+      "current": "3-2.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "작은 변화지만 통로에 손공구가 추가되어 위험물체 변화로 판단함"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "손공구 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 7,
+      "augmentation": "dark"
+    },
+    {
+      "id": 8,
+      "scene": 3,
+      "baseline": "3-4.jpg",
+      "current": "3-5.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌지만 통로의 50% 이상을 막지 않고 위험 공구가 아님"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 상태가 세워진 상태에서 쓰러진 상태로 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 8,
+      "augmentation": "dark"
+    },
+    {
+      "id": 9,
+      "scene": 3,
+      "baseline": "3-7.jpg",
+      "current": "3-6.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌으나 통로의 50% 이상을 점유하지 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 자세가 세워진 상태에서 쓰러진 상태로 뚜렷하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 9,
+      "augmentation": "dark"
+    },
+    {
+      "id": 10,
+      "scene": 3,
+      "baseline": "3-8.jpg",
+      "current": "3-9.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "box: orientation_changed"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자의 방향이 크게 바뀌었지만 통로의 절반 이상을 막지는 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "상자의 방향 및 배치 상태가 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 10,
+      "augmentation": "dark"
+    },
+    {
+      "id": 11,
+      "scene": 3,
+      "baseline": "3-12.jpg",
+      "current": "3-13.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자 1개가 추가되었지만 통로 점유가 50% 미만임"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "상자 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 11,
+      "augmentation": "dark"
+    },
+    {
+      "id": 12,
+      "scene": 3,
+      "baseline": "3-13.jpg",
+      "current": "3-14.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자 위에 물병이 추가되었으며 통로를 크게 막지 않음"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "물병 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 12,
+      "augmentation": "dark"
+    },
+    {
+      "id": 13,
+      "scene": 3,
+      "baseline": "3-14.jpg",
+      "current": "3-15.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌지만 통로의 절반 이상을 막지 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 자세가 세워진 상태에서 쓰러진 상태로 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 13,
+      "augmentation": "dark"
+    },
+    {
+      "id": 14,
+      "scene": 3,
+      "baseline": "3-15.jpg",
+      "current": "3-16.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로에 손공구가 추가되어 위험물체 변화로 판단함"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "손공구 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 14,
+      "augmentation": "dark"
+    },
+    {
+      "id": 15,
+      "scene": 3,
+      "baseline": "3-18.jpg",
+      "current": "3-19.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "large_hand_tool"
+        ],
+        "removed_objects": [
+          "small_hand_tool"
+        ],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "큰 손공구가 통로를 가로질러 배치되어 통행을 크게 방해함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "작은 공구가 사라지고 훨씬 큰 공구가 추가된 대규모 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 15,
+      "augmentation": "dark"
+    },
+    {
+      "id": 16,
+      "scene": 3,
+      "baseline": "3-21.jpg",
+      "current": "3-22.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "large_fallen_bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "매우 큰 쓰러진 물병이 전방 통로를 크게 점유함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "큰 물체가 새로 추가되어 환경 변화의 규모가 큼"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 16,
+      "augmentation": "dark"
+    },
+    {
+      "id": 17,
+      "scene": 3,
+      "baseline": "3-23.jpg",
+      "current": "3-24.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "box"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자가 소폭 이동했으며 통로의 50% 이상을 막지 않음"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "상자의 위치가 소폭 변경된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 17,
+      "augmentation": "dark"
+    },
+    {
+      "id": 18,
+      "scene": 3,
+      "baseline": "3-24.jpg",
+      "current": "3-25.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "large_bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "카메라 가까이에 큰 물병이 추가되어 통로의 상당 부분을 점유함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "큰 물체가 새로 추가된 대규모 환경 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 18,
+      "augmentation": "dark"
+    },
+    {
+      "id": 19,
+      "scene": 1,
+      "baseline": "1-1.jpg",
+      "current": "1-1.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 19,
+      "augmentation": "dark"
+    },
+    {
+      "id": 20,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-2.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 20,
+      "augmentation": "dark"
+    },
+    {
+      "id": 21,
+      "scene": 3,
+      "baseline": "3-12.jpg",
+      "current": "3-12.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 21,
+      "augmentation": "dark"
+    },
+    {
+      "id": 22,
+      "scene": 1,
+      "baseline": "1-1.jpg",
+      "current": "1-2.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle"
+        ],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로 점유는 50% 미만이지만 손공구가 새로 나타나 위험물체 변화가 확인됨"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병 이동, 상자 상태 변화, 손공구 추가가 함께 발생한 중간 수준 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 1,
+      "augmentation": "bright"
+    },
+    {
+      "id": 23,
+      "scene": 1,
+      "baseline": "1-2.jpg",
+      "current": "1-3.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [],
+        "removed_objects": [
+          "hand_tool"
+        ],
+        "moved_objects": [
+          "bottle",
+          "box"
+        ],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "상자와 물병의 큰 위치 변화로 현재 통로의 상당 부분이 점유됨"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "여러 물체의 위치와 상태가 크게 변화함"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 2,
+      "augmentation": "bright"
+    },
+    {
+      "id": 24,
+      "scene": 1,
+      "baseline": "1-4.jpg",
+      "current": "1-5.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "hand_tools"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로 점유는 50% 미만이지만 위험할 수 있는 손공구의 위치 변화가 확인됨"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "동일 공구들의 위치가 소폭 변경된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 3,
+      "augmentation": "bright"
+    },
+    {
+      "id": 25,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-1.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "작은 물병이 추가되었지만 통로의 50% 미만을 점유하고 위험물체가 아님"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "물병 1개가 추가된 작은 환경 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 4,
+      "augmentation": "bright"
+    },
+    {
+      "id": 26,
+      "scene": 2,
+      "baseline": "2-1.jpg",
+      "current": "2-3.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 크게 가까워졌지만 통로의 50% 이상을 막지는 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병 위치가 눈에 띄게 크게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 5,
+      "augmentation": "bright"
+    },
+    {
+      "id": 27,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-6.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle",
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "큰 상자와 물병이 추가되어 통로의 50% 이상을 실질적으로 방해함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "빈 통로에 큰 물체 두 개가 추가된 대규모 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 6,
+      "augmentation": "bright"
+    },
+    {
+      "id": 28,
+      "scene": 3,
+      "baseline": "3-1.jpg",
+      "current": "3-2.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "작은 변화지만 통로에 손공구가 추가되어 위험물체 변화로 판단함"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "손공구 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 7,
+      "augmentation": "bright"
+    },
+    {
+      "id": 29,
+      "scene": 3,
+      "baseline": "3-4.jpg",
+      "current": "3-5.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌지만 통로의 50% 이상을 막지 않고 위험 공구가 아님"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 상태가 세워진 상태에서 쓰러진 상태로 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 8,
+      "augmentation": "bright"
+    },
+    {
+      "id": 30,
+      "scene": 3,
+      "baseline": "3-7.jpg",
+      "current": "3-6.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌으나 통로의 50% 이상을 점유하지 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 자세가 세워진 상태에서 쓰러진 상태로 뚜렷하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 9,
+      "augmentation": "bright"
+    },
+    {
+      "id": 31,
+      "scene": 3,
+      "baseline": "3-8.jpg",
+      "current": "3-9.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "box: orientation_changed"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자의 방향이 크게 바뀌었지만 통로의 절반 이상을 막지는 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "상자의 방향 및 배치 상태가 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 10,
+      "augmentation": "bright"
+    },
+    {
+      "id": 32,
+      "scene": 3,
+      "baseline": "3-12.jpg",
+      "current": "3-13.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자 1개가 추가되었지만 통로 점유가 50% 미만임"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "상자 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 11,
+      "augmentation": "bright"
+    },
+    {
+      "id": 33,
+      "scene": 3,
+      "baseline": "3-13.jpg",
+      "current": "3-14.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자 위에 물병이 추가되었으며 통로를 크게 막지 않음"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "물병 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 12,
+      "augmentation": "bright"
+    },
+    {
+      "id": 34,
+      "scene": 3,
+      "baseline": "3-14.jpg",
+      "current": "3-15.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌지만 통로의 절반 이상을 막지 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 자세가 세워진 상태에서 쓰러진 상태로 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 13,
+      "augmentation": "bright"
+    },
+    {
+      "id": 35,
+      "scene": 3,
+      "baseline": "3-15.jpg",
+      "current": "3-16.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로에 손공구가 추가되어 위험물체 변화로 판단함"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "손공구 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 14,
+      "augmentation": "bright"
+    },
+    {
+      "id": 36,
+      "scene": 3,
+      "baseline": "3-18.jpg",
+      "current": "3-19.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "large_hand_tool"
+        ],
+        "removed_objects": [
+          "small_hand_tool"
+        ],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "큰 손공구가 통로를 가로질러 배치되어 통행을 크게 방해함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "작은 공구가 사라지고 훨씬 큰 공구가 추가된 대규모 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 15,
+      "augmentation": "bright"
+    },
+    {
+      "id": 37,
+      "scene": 3,
+      "baseline": "3-21.jpg",
+      "current": "3-22.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "large_fallen_bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "매우 큰 쓰러진 물병이 전방 통로를 크게 점유함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "큰 물체가 새로 추가되어 환경 변화의 규모가 큼"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 16,
+      "augmentation": "bright"
+    },
+    {
+      "id": 38,
+      "scene": 3,
+      "baseline": "3-23.jpg",
+      "current": "3-24.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "box"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자가 소폭 이동했으며 통로의 50% 이상을 막지 않음"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "상자의 위치가 소폭 변경된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 17,
+      "augmentation": "bright"
+    },
+    {
+      "id": 39,
+      "scene": 3,
+      "baseline": "3-24.jpg",
+      "current": "3-25.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "large_bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "카메라 가까이에 큰 물병이 추가되어 통로의 상당 부분을 점유함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "큰 물체가 새로 추가된 대규모 환경 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 18,
+      "augmentation": "bright"
+    },
+    {
+      "id": 40,
+      "scene": 1,
+      "baseline": "1-1.jpg",
+      "current": "1-1.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 19,
+      "augmentation": "bright"
+    },
+    {
+      "id": 41,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-2.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 20,
+      "augmentation": "bright"
+    },
+    {
+      "id": 42,
+      "scene": 3,
+      "baseline": "3-12.jpg",
+      "current": "3-12.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 21,
+      "augmentation": "bright"
+    },
+    {
+      "id": 43,
+      "scene": 1,
+      "baseline": "1-1.jpg",
+      "current": "1-2.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle"
+        ],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로 점유는 50% 미만이지만 손공구가 새로 나타나 위험물체 변화가 확인됨"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병 이동, 상자 상태 변화, 손공구 추가가 함께 발생한 중간 수준 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 1,
+      "augmentation": "blur"
+    },
+    {
+      "id": 44,
+      "scene": 1,
+      "baseline": "1-2.jpg",
+      "current": "1-3.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [],
+        "removed_objects": [
+          "hand_tool"
+        ],
+        "moved_objects": [
+          "bottle",
+          "box"
+        ],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "상자와 물병의 큰 위치 변화로 현재 통로의 상당 부분이 점유됨"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "여러 물체의 위치와 상태가 크게 변화함"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 2,
+      "augmentation": "blur"
+    },
+    {
+      "id": 45,
+      "scene": 1,
+      "baseline": "1-4.jpg",
+      "current": "1-5.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "hand_tools"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로 점유는 50% 미만이지만 위험할 수 있는 손공구의 위치 변화가 확인됨"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "동일 공구들의 위치가 소폭 변경된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 3,
+      "augmentation": "blur"
+    },
+    {
+      "id": 46,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-1.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "작은 물병이 추가되었지만 통로의 50% 미만을 점유하고 위험물체가 아님"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "물병 1개가 추가된 작은 환경 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 4,
+      "augmentation": "blur"
+    },
+    {
+      "id": 47,
+      "scene": 2,
+      "baseline": "2-1.jpg",
+      "current": "2-3.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 크게 가까워졌지만 통로의 50% 이상을 막지는 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병 위치가 눈에 띄게 크게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 5,
+      "augmentation": "blur"
+    },
+    {
+      "id": 48,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-6.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle",
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "큰 상자와 물병이 추가되어 통로의 50% 이상을 실질적으로 방해함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "빈 통로에 큰 물체 두 개가 추가된 대규모 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 6,
+      "augmentation": "blur"
+    },
+    {
+      "id": 49,
+      "scene": 3,
+      "baseline": "3-1.jpg",
+      "current": "3-2.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "작은 변화지만 통로에 손공구가 추가되어 위험물체 변화로 판단함"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "손공구 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 7,
+      "augmentation": "blur"
+    },
+    {
+      "id": 50,
+      "scene": 3,
+      "baseline": "3-4.jpg",
+      "current": "3-5.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌지만 통로의 50% 이상을 막지 않고 위험 공구가 아님"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 상태가 세워진 상태에서 쓰러진 상태로 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 8,
+      "augmentation": "blur"
+    },
+    {
+      "id": 51,
+      "scene": 3,
+      "baseline": "3-7.jpg",
+      "current": "3-6.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌으나 통로의 50% 이상을 점유하지 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 자세가 세워진 상태에서 쓰러진 상태로 뚜렷하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 9,
+      "augmentation": "blur"
+    },
+    {
+      "id": 52,
+      "scene": 3,
+      "baseline": "3-8.jpg",
+      "current": "3-9.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "box: orientation_changed"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자의 방향이 크게 바뀌었지만 통로의 절반 이상을 막지는 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "상자의 방향 및 배치 상태가 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 10,
+      "augmentation": "blur"
+    },
+    {
+      "id": 53,
+      "scene": 3,
+      "baseline": "3-12.jpg",
+      "current": "3-13.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자 1개가 추가되었지만 통로 점유가 50% 미만임"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "상자 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 11,
+      "augmentation": "blur"
+    },
+    {
+      "id": 54,
+      "scene": 3,
+      "baseline": "3-13.jpg",
+      "current": "3-14.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자 위에 물병이 추가되었으며 통로를 크게 막지 않음"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "물병 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 12,
+      "augmentation": "blur"
+    },
+    {
+      "id": 55,
+      "scene": 3,
+      "baseline": "3-14.jpg",
+      "current": "3-15.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌지만 통로의 절반 이상을 막지 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 자세가 세워진 상태에서 쓰러진 상태로 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 13,
+      "augmentation": "blur"
+    },
+    {
+      "id": 56,
+      "scene": 3,
+      "baseline": "3-15.jpg",
+      "current": "3-16.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로에 손공구가 추가되어 위험물체 변화로 판단함"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "손공구 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 14,
+      "augmentation": "blur"
+    },
+    {
+      "id": 57,
+      "scene": 3,
+      "baseline": "3-18.jpg",
+      "current": "3-19.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "large_hand_tool"
+        ],
+        "removed_objects": [
+          "small_hand_tool"
+        ],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "큰 손공구가 통로를 가로질러 배치되어 통행을 크게 방해함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "작은 공구가 사라지고 훨씬 큰 공구가 추가된 대규모 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 15,
+      "augmentation": "blur"
+    },
+    {
+      "id": 58,
+      "scene": 3,
+      "baseline": "3-21.jpg",
+      "current": "3-22.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "large_fallen_bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "매우 큰 쓰러진 물병이 전방 통로를 크게 점유함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "큰 물체가 새로 추가되어 환경 변화의 규모가 큼"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 16,
+      "augmentation": "blur"
+    },
+    {
+      "id": 59,
+      "scene": 3,
+      "baseline": "3-23.jpg",
+      "current": "3-24.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "box"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자가 소폭 이동했으며 통로의 50% 이상을 막지 않음"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "상자의 위치가 소폭 변경된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 17,
+      "augmentation": "blur"
+    },
+    {
+      "id": 60,
+      "scene": 3,
+      "baseline": "3-24.jpg",
+      "current": "3-25.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "large_bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "카메라 가까이에 큰 물병이 추가되어 통로의 상당 부분을 점유함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "큰 물체가 새로 추가된 대규모 환경 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 18,
+      "augmentation": "blur"
+    },
+    {
+      "id": 61,
+      "scene": 1,
+      "baseline": "1-1.jpg",
+      "current": "1-1.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 19,
+      "augmentation": "blur"
+    },
+    {
+      "id": 62,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-2.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 20,
+      "augmentation": "blur"
+    },
+    {
+      "id": 63,
+      "scene": 3,
+      "baseline": "3-12.jpg",
+      "current": "3-12.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 21,
+      "augmentation": "blur"
+    },
+    {
+      "id": 64,
+      "scene": 1,
+      "baseline": "1-1.jpg",
+      "current": "1-2.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle"
+        ],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로 점유는 50% 미만이지만 손공구가 새로 나타나 위험물체 변화가 확인됨"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병 이동, 상자 상태 변화, 손공구 추가가 함께 발생한 중간 수준 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 1,
+      "augmentation": "noise"
+    },
+    {
+      "id": 65,
+      "scene": 1,
+      "baseline": "1-2.jpg",
+      "current": "1-3.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [],
+        "removed_objects": [
+          "hand_tool"
+        ],
+        "moved_objects": [
+          "bottle",
+          "box"
+        ],
+        "state_changed_objects": [
+          "box"
+        ],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "상자와 물병의 큰 위치 변화로 현재 통로의 상당 부분이 점유됨"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "여러 물체의 위치와 상태가 크게 변화함"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 2,
+      "augmentation": "noise"
+    },
+    {
+      "id": 66,
+      "scene": 1,
+      "baseline": "1-4.jpg",
+      "current": "1-5.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "hand_tools"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로 점유는 50% 미만이지만 위험할 수 있는 손공구의 위치 변화가 확인됨"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "동일 공구들의 위치가 소폭 변경된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 3,
+      "augmentation": "noise"
+    },
+    {
+      "id": 67,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-1.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "작은 물병이 추가되었지만 통로의 50% 미만을 점유하고 위험물체가 아님"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "물병 1개가 추가된 작은 환경 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 4,
+      "augmentation": "noise"
+    },
+    {
+      "id": 68,
+      "scene": 2,
+      "baseline": "2-1.jpg",
+      "current": "2-3.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "bottle"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 크게 가까워졌지만 통로의 50% 이상을 막지는 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병 위치가 눈에 띄게 크게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 5,
+      "augmentation": "noise"
+    },
+    {
+      "id": 69,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-6.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle",
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "큰 상자와 물병이 추가되어 통로의 50% 이상을 실질적으로 방해함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "빈 통로에 큰 물체 두 개가 추가된 대규모 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 6,
+      "augmentation": "noise"
+    },
+    {
+      "id": 70,
+      "scene": 3,
+      "baseline": "3-1.jpg",
+      "current": "3-2.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "작은 변화지만 통로에 손공구가 추가되어 위험물체 변화로 판단함"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "손공구 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 7,
+      "augmentation": "noise"
+    },
+    {
+      "id": 71,
+      "scene": 3,
+      "baseline": "3-4.jpg",
+      "current": "3-5.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌지만 통로의 50% 이상을 막지 않고 위험 공구가 아님"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 상태가 세워진 상태에서 쓰러진 상태로 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 8,
+      "augmentation": "noise"
+    },
+    {
+      "id": 72,
+      "scene": 3,
+      "baseline": "3-7.jpg",
+      "current": "3-6.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌으나 통로의 50% 이상을 점유하지 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 자세가 세워진 상태에서 쓰러진 상태로 뚜렷하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 9,
+      "augmentation": "noise"
+    },
+    {
+      "id": 73,
+      "scene": 3,
+      "baseline": "3-8.jpg",
+      "current": "3-9.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "box: orientation_changed"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자의 방향이 크게 바뀌었지만 통로의 절반 이상을 막지는 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "상자의 방향 및 배치 상태가 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 10,
+      "augmentation": "noise"
+    },
+    {
+      "id": 74,
+      "scene": 3,
+      "baseline": "3-12.jpg",
+      "current": "3-13.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "box"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자 1개가 추가되었지만 통로 점유가 50% 미만임"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "상자 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 11,
+      "augmentation": "noise"
+    },
+    {
+      "id": 75,
+      "scene": 3,
+      "baseline": "3-13.jpg",
+      "current": "3-14.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자 위에 물병이 추가되었으며 통로를 크게 막지 않음"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "물병 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 12,
+      "augmentation": "noise"
+    },
+    {
+      "id": 76,
+      "scene": 3,
+      "baseline": "3-14.jpg",
+      "current": "3-15.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "STATE_CHANGED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [
+          "bottle: upright_to_fallen"
+        ],
+        "change_degree": "MEDIUM",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "물병이 쓰러졌지만 통로의 절반 이상을 막지 않음"
+        },
+        "B": {
+          "risk_level": "MEDIUM",
+          "reason": "물병의 자세가 세워진 상태에서 쓰러진 상태로 명확하게 변경됨"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 13,
+      "augmentation": "noise"
+    },
+    {
+      "id": 77,
+      "scene": 3,
+      "baseline": "3-15.jpg",
+      "current": "3-16.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "hand_tool"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "MEDIUM",
+          "reason": "통로에 손공구가 추가되어 위험물체 변화로 판단함"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "손공구 1개가 추가된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 14,
+      "augmentation": "noise"
+    },
+    {
+      "id": 78,
+      "scene": 3,
+      "baseline": "3-18.jpg",
+      "current": "3-19.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MIXED",
+        "added_objects": [
+          "large_hand_tool"
+        ],
+        "removed_objects": [
+          "small_hand_tool"
+        ],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": true
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "큰 손공구가 통로를 가로질러 배치되어 통행을 크게 방해함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "작은 공구가 사라지고 훨씬 큰 공구가 추가된 대규모 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 15,
+      "augmentation": "noise"
+    },
+    {
+      "id": 79,
+      "scene": 3,
+      "baseline": "3-21.jpg",
+      "current": "3-22.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "large_fallen_bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "매우 큰 쓰러진 물병이 전방 통로를 크게 점유함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "큰 물체가 새로 추가되어 환경 변화의 규모가 큼"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 16,
+      "augmentation": "noise"
+    },
+    {
+      "id": 80,
+      "scene": 3,
+      "baseline": "3-23.jpg",
+      "current": "3-24.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "MOVED",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [
+          "box"
+        ],
+        "state_changed_objects": [],
+        "change_degree": "SMALL",
+        "path_occupancy": "UNDER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "LOW",
+          "reason": "상자가 소폭 이동했으며 통로의 50% 이상을 막지 않음"
+        },
+        "B": {
+          "risk_level": "LOW",
+          "reason": "상자의 위치가 소폭 변경된 작은 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 17,
+      "augmentation": "noise"
+    },
+    {
+      "id": 81,
+      "scene": 3,
+      "baseline": "3-24.jpg",
+      "current": "3-25.jpg",
+      "change": {
+        "change_detected": true,
+        "change_type": "ADDED",
+        "added_objects": [
+          "large_bottle"
+        ],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "LARGE",
+        "path_occupancy": "OVER_50",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "HIGH",
+          "reason": "카메라 가까이에 큰 물병이 추가되어 통로의 상당 부분을 점유함"
+        },
+        "B": {
+          "risk_level": "HIGH",
+          "reason": "큰 물체가 새로 추가된 대규모 환경 변화"
+        },
+        "C": {
+          "risk_level": "HIGH",
+          "reason": "이전 상황과 비교하여 환경 변화가 발생함"
+        }
+      },
+      "original_pair_id": 18,
+      "augmentation": "noise"
+    },
+    {
+      "id": 82,
+      "scene": 1,
+      "baseline": "1-1.jpg",
+      "current": "1-1.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 19,
+      "augmentation": "noise"
+    },
+    {
+      "id": 83,
+      "scene": 2,
+      "baseline": "2-2.jpg",
+      "current": "2-2.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 20,
+      "augmentation": "noise"
+    },
+    {
+      "id": 84,
+      "scene": 3,
+      "baseline": "3-12.jpg",
+      "current": "3-12.jpg",
+      "change": {
+        "change_detected": false,
+        "change_type": "NO_CHANGE",
+        "added_objects": [],
+        "removed_objects": [],
+        "moved_objects": [],
+        "state_changed_objects": [],
+        "change_degree": "NONE",
+        "path_occupancy": "UNCHANGED",
+        "dangerous_object": false
+      },
+      "policy_results": {
+        "A": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "B": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        },
+        "C": {
+          "risk_level": "NORMAL",
+          "reason": "동일 이미지 비교로 환경 변화가 없음"
+        }
+      },
+      "original_pair_id": 21,
+      "augmentation": "noise"
+    }
+  ]
+}

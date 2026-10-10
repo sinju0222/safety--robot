@@ -1,0 +1,369 @@
+[
+  {
+    "pair_id": 1,
+    "baseline": "1-1.jpg",
+    "current": "1-2.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "trip_hazard",
+      "object_on_path"
+    ],
+    "pred_hazards": [
+      "sharp_tool_hazard",
+      "object_on_path"
+    ],
+    "hazard_f1": 0.5,
+    "gt_risk": "MEDIUM",
+    "pred_risk": "MEDIUM",
+    "risk_correct": true
+  },
+  {
+    "pair_id": 2,
+    "baseline": "1-2.jpg",
+    "current": "1-3.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": false,
+    "gt_hazards": [
+      "path_obstruction"
+    ],
+    "pred_hazards": [],
+    "hazard_f1": 0.0,
+    "gt_risk": "HIGH",
+    "pred_risk": "LOW",
+    "risk_correct": false
+  },
+  {
+    "pair_id": 3,
+    "baseline": "1-4.jpg",
+    "current": "1-5.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "trip_hazard",
+      "sharp_tool_hazard"
+    ],
+    "pred_hazards": [
+      "trip_hazard",
+      "object_on_path",
+      "sharp_tool_hazard"
+    ],
+    "hazard_f1": 0.8,
+    "gt_risk": "MEDIUM",
+    "pred_risk": "MEDIUM",
+    "risk_correct": true
+  },
+  {
+    "pair_id": 4,
+    "baseline": "2-2.jpg",
+    "current": "2-1.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "object_on_path"
+    ],
+    "pred_hazards": [
+      "object_on_path",
+      "trip_hazard",
+      "rolling_object_hazard"
+    ],
+    "hazard_f1": 0.5,
+    "gt_risk": "LOW",
+    "pred_risk": "MEDIUM",
+    "risk_correct": false
+  },
+  {
+    "pair_id": 5,
+    "baseline": "2-1.jpg",
+    "current": "2-3.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "object_on_path"
+    ],
+    "pred_hazards": [
+      "object_on_path",
+      "trip_hazard"
+    ],
+    "hazard_f1": 0.667,
+    "gt_risk": "MEDIUM",
+    "pred_risk": "MEDIUM",
+    "risk_correct": true
+  },
+  {
+    "pair_id": 6,
+    "baseline": "2-2.jpg",
+    "current": "2-4.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "path_obstruction"
+    ],
+    "pred_hazards": [
+      "trip_hazard",
+      "object_on_path",
+      "path_obstruction",
+      "rolling_object_hazard"
+    ],
+    "hazard_f1": 0.4,
+    "gt_risk": "MEDIUM",
+    "pred_risk": "MEDIUM",
+    "risk_correct": true
+  },
+  {
+    "pair_id": 7,
+    "baseline": "2-2.jpg",
+    "current": "2-6.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "path_obstruction"
+    ],
+    "pred_hazards": [
+      "trip_hazard",
+      "object_on_path",
+      "path_obstruction",
+      "rolling_object_hazard"
+    ],
+    "hazard_f1": 0.4,
+    "gt_risk": "HIGH",
+    "pred_risk": "HIGH",
+    "risk_correct": true
+  },
+  {
+    "pair_id": 10,
+    "baseline": "3-1.jpg",
+    "current": "3-2.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "trip_hazard",
+      "sharp_tool_hazard"
+    ],
+    "pred_hazards": [
+      "trip_hazard",
+      "object_on_path",
+      "sharp_tool_hazard"
+    ],
+    "hazard_f1": 0.8,
+    "gt_risk": "MEDIUM",
+    "pred_risk": "MEDIUM",
+    "risk_correct": true
+  },
+  {
+    "pair_id": 12,
+    "baseline": "3-5.jpg",
+    "current": "3-4.jpg",
+    "gt_hazard_present": false,
+    "pred_hazard_present": true,
+    "gt_hazards": [],
+    "pred_hazards": [
+      "object_on_path"
+    ],
+    "hazard_f1": 0.0,
+    "gt_risk": "LOW",
+    "pred_risk": "MEDIUM",
+    "risk_correct": false
+  },
+  {
+    "pair_id": 13,
+    "baseline": "3-6.jpg",
+    "current": "3-7.jpg",
+    "gt_hazard_present": false,
+    "pred_hazard_present": true,
+    "gt_hazards": [],
+    "pred_hazards": [
+      "object_on_path"
+    ],
+    "hazard_f1": 0.0,
+    "gt_risk": "LOW",
+    "pred_risk": "LOW",
+    "risk_correct": true
+  },
+  {
+    "pair_id": 14,
+    "baseline": "3-8.jpg",
+    "current": "3-9.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "unstable_object"
+    ],
+    "pred_hazards": [
+      "trip_hazard",
+      "unstable_object"
+    ],
+    "hazard_f1": 0.667,
+    "gt_risk": "MEDIUM",
+    "pred_risk": "MEDIUM",
+    "risk_correct": true
+  },
+  {
+    "pair_id": 15,
+    "baseline": "3-12.jpg",
+    "current": "3-13.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "object_on_path"
+    ],
+    "pred_hazards": [
+      "trip_hazard",
+      "object_on_path"
+    ],
+    "hazard_f1": 0.667,
+    "gt_risk": "LOW",
+    "pred_risk": "MEDIUM",
+    "risk_correct": false
+  },
+  {
+    "pair_id": 16,
+    "baseline": "3-13.jpg",
+    "current": "3-14.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "object_on_path"
+    ],
+    "pred_hazards": [
+      "unstable_object"
+    ],
+    "hazard_f1": 0.0,
+    "gt_risk": "LOW",
+    "pred_risk": "LOW",
+    "risk_correct": true
+  },
+  {
+    "pair_id": 17,
+    "baseline": "3-14.jpg",
+    "current": "3-15.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "falling_object_hazard"
+    ],
+    "pred_hazards": [
+      "unstable_object",
+      "rolling_object_hazard"
+    ],
+    "hazard_f1": 0.0,
+    "gt_risk": "MEDIUM",
+    "pred_risk": "LOW",
+    "risk_correct": false
+  },
+  {
+    "pair_id": 18,
+    "baseline": "3-15.jpg",
+    "current": "3-16.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "trip_hazard",
+      "sharp_tool_hazard"
+    ],
+    "pred_hazards": [
+      "trip_hazard",
+      "object_on_path",
+      "sharp_tool_hazard"
+    ],
+    "hazard_f1": 0.8,
+    "gt_risk": "MEDIUM",
+    "pred_risk": "MEDIUM",
+    "risk_correct": true
+  },
+  {
+    "pair_id": 19,
+    "baseline": "3-18.jpg",
+    "current": "3-19.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "path_obstruction",
+      "trip_hazard",
+      "sharp_tool_hazard"
+    ],
+    "pred_hazards": [
+      "trip_hazard",
+      "object_on_path",
+      "sharp_tool_hazard"
+    ],
+    "hazard_f1": 0.667,
+    "gt_risk": "HIGH",
+    "pred_risk": "MEDIUM",
+    "risk_correct": false
+  },
+  {
+    "pair_id": 20,
+    "baseline": "3-19.jpg",
+    "current": "3-20.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "path_obstruction",
+      "trip_hazard"
+    ],
+    "pred_hazards": [
+      "trip_hazard",
+      "object_on_path"
+    ],
+    "hazard_f1": 0.5,
+    "gt_risk": "HIGH",
+    "pred_risk": "LOW",
+    "risk_correct": false
+  },
+  {
+    "pair_id": 22,
+    "baseline": "3-21.jpg",
+    "current": "3-22.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "trip_hazard",
+      "rolling_object_hazard"
+    ],
+    "pred_hazards": [
+      "object_on_path",
+      "trip_hazard",
+      "rolling_object_hazard"
+    ],
+    "hazard_f1": 0.8,
+    "gt_risk": "HIGH",
+    "pred_risk": "MEDIUM",
+    "risk_correct": false
+  },
+  {
+    "pair_id": 23,
+    "baseline": "3-23.jpg",
+    "current": "3-24.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "falling_object_hazard"
+    ],
+    "pred_hazards": [
+      "object_on_path"
+    ],
+    "hazard_f1": 0.0,
+    "gt_risk": "MEDIUM",
+    "pred_risk": "LOW",
+    "risk_correct": false
+  },
+  {
+    "pair_id": 24,
+    "baseline": "3-24.jpg",
+    "current": "3-25.jpg",
+    "gt_hazard_present": true,
+    "pred_hazard_present": true,
+    "gt_hazards": [
+      "path_obstruction"
+    ],
+    "pred_hazards": [
+      "trip_hazard",
+      "object_on_path"
+    ],
+    "hazard_f1": 0.0,
+    "gt_risk": "HIGH",
+    "pred_risk": "MEDIUM",
+    "risk_correct": false
+  }
+]
