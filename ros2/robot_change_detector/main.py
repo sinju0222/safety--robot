@@ -149,15 +149,24 @@ class ChangeDetectorNode(Node):
         # Patrol mode
         # ==================================================
 
-        self.baseline_patrol = (
+        self.patrol_mode_file = Path(
             os.environ.get(
-                "SAFETY_BASELINE_PATROL",
-                "0",
-            ).strip()
-            == "1"
+                "SAFETY_PATROL_MODE_FILE",
+                str(
+                    Path(__file__)
+                    .resolve()
+                    .parent
+                    / "data"
+                    / "patrol_mode.json"
+                ),
+            )
         )
 
+        self.baseline_patrol = False
+        self.last_patrol_mode = None
         self.last_baseline_pose = None
+
+        self.refresh_patrol_mode()
 
         # ==================================================
         # Baseline
@@ -457,6 +466,56 @@ class ChangeDetectorNode(Node):
             )
 
     # ======================================================
+    # Patrol mode
+    # ======================================================
+
+    def refresh_patrol_mode(self):
+        mode = "IDLE"
+
+        try:
+            if self.patrol_mode_file.exists():
+                data = json.loads(
+                    self.patrol_mode_file.read_text(
+                        encoding="utf-8"
+                    )
+                )
+
+                mode = str(
+                    data.get(
+                        "mode",
+                        "IDLE",
+                    )
+                ).upper()
+
+        except Exception as exc:
+            self.get_logger().warning(
+                "Patrol mode read failed: "
+                f"{exc}"
+            )
+            return
+
+        baseline_patrol = (
+            mode == "BASELINE"
+        )
+
+        if mode != self.last_patrol_mode:
+            self.last_patrol_mode = mode
+            self.baseline_patrol = (
+                baseline_patrol
+            )
+
+            if baseline_patrol:
+                self.last_baseline_pose = None
+
+            self.get_logger().info(
+                f"Patrol mode: {mode}"
+            )
+        else:
+            self.baseline_patrol = (
+                baseline_patrol
+            )
+
+    # ======================================================
     # RGB baseline patrol
     # ======================================================
 
@@ -494,6 +553,8 @@ class ChangeDetectorNode(Node):
     def capture_baseline_if_needed(
         self
     ):
+        self.refresh_patrol_mode()
+
         if not self.baseline_patrol:
             return
 
@@ -777,6 +838,8 @@ class ChangeDetectorNode(Node):
         self.last_scan_stamp = (
             scan_msg.header.stamp
         )
+
+        self.refresh_patrol_mode()
 
         # 첫 번째 기준 순찰에서는
         # 변화 이벤트를 생성하지 않는다.

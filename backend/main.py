@@ -1,5 +1,7 @@
 import asyncio
 import math
+import os
+import requests
 from fastapi.middleware.cors import CORSMiddleware
 import json    # 👈 추가
 from fastapi import WebSocket
@@ -13,6 +15,12 @@ from pydantic import BaseModel, Field
 from robot_event_api import router as robot_event_router, HISTORY_FILE
 from telemetry_api import router as telemetry_router
 from pathlib import Path
+
+PATROL_CONTROLLER_URL = os.getenv(
+    "SAFETY_PATROL_CONTROLLER_URL",
+    "http://127.0.0.1:8090",
+).rstrip("/")
+
 
 app = FastAPI(
     title="Safety Robot API",
@@ -65,6 +73,12 @@ app.add_middleware(
 class Position(BaseModel):
     x: float
     y: float
+
+
+class PatrolWaypoint(BaseModel):
+    x: float
+    y: float
+    yaw: float = 0.0
 
 
 # =========================================================
@@ -171,6 +185,10 @@ class Workplace(BaseModel):
     )
 
     patrols: List[dict] = Field(
+        default_factory=list
+    )
+
+    patrolWaypoints: List[PatrolWaypoint] = Field(
         default_factory=list
     )
 
@@ -1294,6 +1312,55 @@ def update_policies(
 
 
 # =========================================================
+# Patrol - Waypoints
+# =========================================================
+
+@app.get(
+    "/workplaces/{workplace_id}/patrol-waypoints"
+)
+def get_patrol_waypoints(
+    workplace_id: int,
+):
+    workplace = get_workplace(
+        workplace_id
+    )
+
+    return workplace.patrolWaypoints
+
+
+@app.put(
+    "/workplaces/{workplace_id}/patrol-waypoints"
+)
+def save_patrol_waypoints(
+    workplace_id: int,
+    waypoints: List[PatrolWaypoint],
+):
+    workplace = get_workplace(
+        workplace_id
+    )
+
+    if not waypoints:
+        raise HTTPException(
+            status_code=400,
+            detail="순찰 지점이 하나 이상 필요합니다.",
+        )
+
+    workplace.patrolWaypoints = (
+        waypoints
+    )
+
+    save_workplaces()
+
+    return {
+        "message":
+            "순찰 경로가 저장되었습니다.",
+
+        "waypoints":
+            workplace.patrolWaypoints,
+    }
+
+
+# =========================================================
 # Patrol - Start
 # =========================================================
 
@@ -1318,6 +1385,63 @@ def start_patrol(
             status_code=400,
             detail=(
                 "완성된 지도가 필요합니다."
+            ),
+        )
+
+    if not workplace.patrolWaypoints:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "저장된 순찰 경로가 없습니다."
+            ),
+        )
+
+    waypoint_payload = [
+        (
+            waypoint.model_dump()
+            if hasattr(
+                waypoint,
+                "model_dump",
+            )
+            else waypoint.dict()
+        )
+        for waypoint
+        in workplace.patrolWaypoints
+    ]
+
+    try:
+        robot_response = requests.post(
+            (
+                PATROL_CONTROLLER_URL
+                + "/patrol/start"
+            ),
+            json={
+                "workplace_id":
+                    workplace_id,
+                "patrol_id":
+                    next_patrol_id,
+                "waypoints":
+                    waypoint_payload,
+            },
+            timeout=5,
+        )
+
+        if not robot_response.ok:
+            raise HTTPException(
+                status_code=502,
+                detail=(
+                    "로봇 순찰 시작 실패: "
+                    + robot_response.text
+                ),
+            )
+
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "로봇 순찰 제어기에 "
+                "연결할 수 없습니다: "
+                + str(exc)
             ),
         )
 
@@ -1542,6 +1666,34 @@ def return_home(
             detail=(
                 "현재 진행 중인 "
                 "순찰이 아닙니다."
+            ),
+        )
+
+    try:
+        robot_response = requests.post(
+            (
+                PATROL_CONTROLLER_URL
+                + "/patrol/return-home"
+            ),
+            timeout=5,
+        )
+
+        if not robot_response.ok:
+            raise HTTPException(
+                status_code=502,
+                detail=(
+                    "로봇 복귀 명령 실패: "
+                    + robot_response.text
+                ),
+            )
+
+    except requests.RequestException as exc:
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "로봇 순찰 제어기에 "
+                "연결할 수 없습니다: "
+                + str(exc)
             ),
         )
 

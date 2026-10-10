@@ -20,6 +20,7 @@ setup(
         "yolo_detector",
         "server_sender",
         "telemetry_sender",
+        "patrol_controller",
     ],
     data_files=[
         (
@@ -43,6 +44,7 @@ setup(
     entry_points={
         "console_scripts": [
             "robot_change_detector = main:main",
+            "patrol_controller = patrol_controller:main",
         ],
     },
 )

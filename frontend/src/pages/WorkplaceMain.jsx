@@ -6,7 +6,10 @@ import {
 import ChangeDetectionPhoto
   from "./ChangeDetectionPhoto";
 
-import PixelGridMap from "../PixelGridMap";
+import PixelGridMap
+  from "../PixelGridMap";
+
+
 const API_URL =
   "http://127.0.0.1:8000";
 
@@ -39,6 +42,7 @@ const ZONE_TYPES = [
   },
 ];
 
+
 function WorkplaceMain({
   workplace,
   onBack,
@@ -58,8 +62,8 @@ function WorkplaceMain({
   ] = useState(0);
 
   const [
-    currentEvents,
-    setCurrentEvents,
+    robotEvents,
+    setRobotEvents,
   ] = useState([]);
 
   const [
@@ -76,10 +80,15 @@ function WorkplaceMain({
     selectedMapObjectId,
     setSelectedMapObjectId,
   ] = useState(null);
+
   const [
     robotPosition,
     setRobotPosition,
-  ] = useState({ x: 1.0, y: 1.0 });
+  ] = useState({
+    x: 1.0,
+    y: 1.0,
+  });
+
 
   const mapStatus =
     workplace.map?.status ||
@@ -93,6 +102,7 @@ function WorkplaceMain({
     workplace.map?.zones ||
     [];
 
+
   const selectedMapObject =
     mapObjects.find(
       (object) =>
@@ -100,15 +110,8 @@ function WorkplaceMain({
         selectedMapObjectId
     ) || null;
 
+
   /*
-   * ==========================================
-   * Timer
-   * ==========================================
-   */
-
-
-
- /*
    * ==========================================
    * Timer & 실제 로봇 위치 연동
    * ==========================================
@@ -122,32 +125,264 @@ function WorkplaceMain({
       return;
     }
 
-    const timer = setInterval(() => {
-      setElapsedTime((prev) => prev + 1);
-    }, 1000);
 
-    // ▼ 백엔드에서 0.5초마다 진짜 로봇 위치를 가져옵니다.
-    const moveInterval = setInterval(async () => {
-      if (patrolStatus === "running") {
-        try {
-          const res = await fetch(`${API_URL}/workplaces/${workplace.id}/robot/position`);
-          if (res.ok) {
-            const pos = await res.json();
-            setRobotPosition({ x: pos.x, y: pos.y }); // 받아온 좌표로 거북이 이동!
+    const timer =
+      setInterval(
+        () => {
+          setElapsedTime(
+            (prev) =>
+              prev + 1
+          );
+        },
+        1000
+      );
+
+
+    const moveInterval =
+      setInterval(
+        async () => {
+          if (
+            patrolStatus !==
+            "running"
+          ) {
+            return;
           }
-        } catch (e) {
-          console.error("위치 연동 실패:", e);
-        }
-      }
-    }, 500);
+
+          try {
+            const response =
+              await fetch(
+                `${API_URL}/workplaces/${workplace.id}/robot/position`
+              );
+
+            if (
+              response.ok
+            ) {
+              const position =
+                await response.json();
+
+              setRobotPosition({
+                x:
+                  position.x,
+
+                y:
+                  position.y,
+              });
+            }
+          } catch (error) {
+            console.error(
+              "위치 연동 실패:",
+              error
+            );
+          }
+        },
+        500
+      );
+
 
     return () => {
-      clearInterval(timer);
-      clearInterval(moveInterval);
+      clearInterval(
+        timer
+      );
+
+      clearInterval(
+        moveInterval
+      );
     };
-  }, [patrolStatus, workplace.id]);
-  
-   
+  }, [
+    patrolStatus,
+    workplace.id,
+  ]);
+
+
+  /*
+   * ==========================================
+   * 실제 순찰 상태 연동
+   * ==========================================
+   */
+
+  useEffect(() => {
+    if (
+      !currentPatrolId ||
+      (
+        patrolStatus !== "running" &&
+        patrolStatus !== "returning"
+      )
+    ) {
+      return;
+    }
+
+    let active = true;
+
+    const loadPatrolStatus =
+      async () => {
+        try {
+          const response =
+            await fetch(
+              `${API_URL}/workplaces/${workplace.id}/patrols/${currentPatrolId}`
+            );
+
+          if (!response.ok) {
+            return;
+          }
+
+          const patrol =
+            await response.json();
+
+          if (!active) {
+            return;
+          }
+
+          if (
+            patrol.status ===
+            "completed"
+          ) {
+            setPatrolStatus(
+              "completed"
+            );
+
+            if (
+              typeof patrol.duration
+              === "number"
+            ) {
+              setElapsedTime(
+                patrol.duration
+              );
+            }
+
+            setCurrentPatrolId(
+              null
+            );
+
+            if (onSavePatrol) {
+              onSavePatrol(
+                patrol
+              );
+            }
+
+            return;
+          }
+
+          if (
+            patrol.status ===
+            "returning"
+          ) {
+            setPatrolStatus(
+              "returning"
+            );
+          }
+        } catch (error) {
+          console.error(
+            "순찰 상태 연동 실패:",
+            error
+          );
+        }
+      };
+
+    loadPatrolStatus();
+
+    const interval =
+      setInterval(
+        loadPatrolStatus,
+        1000
+      );
+
+    return () => {
+      active = false;
+
+      clearInterval(
+        interval
+      );
+    };
+  }, [
+    currentPatrolId,
+    patrolStatus,
+    workplace.id,
+    onSavePatrol,
+  ]);
+
+
+  /*
+   * ==========================================
+   * 실제 Robot Event 연동
+   * ==========================================
+   */
+
+  useEffect(() => {
+    let active = true;
+
+
+    const loadRobotEvents =
+      async () => {
+        try {
+          const response =
+            await fetch(
+              `${API_URL}/api/robot-events/hazards?workplace_id=${encodeURIComponent(
+                workplace.id
+              )}`,
+              {
+                cache:
+                  "no-store",
+              }
+            );
+
+
+          if (!response.ok) {
+            throw new Error(
+              `HTTP ${response.status}`
+            );
+          }
+
+
+          const data =
+            await response.json();
+
+
+          if (!active) {
+            return;
+          }
+
+
+          setRobotEvents(
+            Array.isArray(
+              data.hazards
+            )
+              ? data.hazards
+              : []
+          );
+        } catch (error) {
+          console.error(
+            "Robot Event 로딩 실패:",
+            error
+          );
+        }
+      };
+
+
+    loadRobotEvents();
+
+
+    const timer =
+      setInterval(
+        loadRobotEvents,
+        2000
+      );
+
+
+    return () => {
+      active = false;
+
+      clearInterval(
+        timer
+      );
+    };
+  }, [workplace.id]);
+
+
+  /*
+   * ==========================================
+   * Formatting
+   * ==========================================
+   */
 
   const formatTime = (
     seconds
@@ -159,6 +394,7 @@ function WorkplaceMain({
 
     const remainSeconds =
       seconds % 60;
+
 
     return `${String(
       minutes
@@ -173,6 +409,7 @@ function WorkplaceMain({
     )}`;
   };
 
+
   const formatDate = (
     dateString
   ) => {
@@ -180,12 +417,14 @@ function WorkplaceMain({
       return "-";
     }
 
+
     return new Date(
       dateString
     ).toLocaleString(
       "ko-KR"
     );
   };
+
 
   /*
    * ==========================================
@@ -211,6 +450,7 @@ function WorkplaceMain({
     }
   };
 
+
   const getObjectTypeName = (
     type
   ) => {
@@ -229,6 +469,7 @@ function WorkplaceMain({
     }
   };
 
+
   /*
    * ==========================================
    * Semantic Zone
@@ -245,10 +486,12 @@ function WorkplaceMain({
           type
       );
 
+
     return found
       ? found.label
       : "미지정";
   };
+
 
   const getZoneClass = (
     type
@@ -257,6 +500,7 @@ function WorkplaceMain({
       `zone-type-${type}`
     );
   };
+
 
   /*
    * ==========================================
@@ -270,6 +514,7 @@ function WorkplaceMain({
     if (!bounds) {
       return {};
     }
+
 
     const minX =
       Math.min(
@@ -295,6 +540,7 @@ function WorkplaceMain({
         bounds.y2
       );
 
+
     return {
       left:
         `${(
@@ -311,19 +557,24 @@ function WorkplaceMain({
 
       width:
         `${(
-          (maxX -
-            minX) /
+          (
+            maxX -
+            minX
+          ) /
           MAP_SIZE
         ) * 100}%`,
 
       height:
         `${(
-          (maxY -
-            minY) /
+          (
+            maxY -
+            minY
+          ) /
           MAP_SIZE
         ) * 100}%`,
     };
   };
+
 
   /*
    * ==========================================
@@ -336,17 +587,18 @@ function WorkplaceMain({
   ) => {
     const x =
       position?.x ?? 0;
-  
+
     const y =
       position?.y ?? 0;
-  
+
+
     return {
       left:
         `${(
           x /
           MAP_SIZE
         ) * 100}%`,
-  
+
       top:
         `${(
           1 -
@@ -355,6 +607,7 @@ function WorkplaceMain({
         ) * 100}%`,
     };
   };
+
 
   /*
    * ==========================================
@@ -369,11 +622,13 @@ function WorkplaceMain({
       return null;
     }
 
+
     const x =
       position.x;
 
     const y =
       position.y;
+
 
     return (
       mapZones.find(
@@ -381,9 +636,11 @@ function WorkplaceMain({
           const bounds =
             zone.bounds;
 
+
           if (!bounds) {
             return false;
           }
+
 
           const minX =
             Math.min(
@@ -409,6 +666,7 @@ function WorkplaceMain({
               bounds.y2
             );
 
+
           return (
             x >= minX &&
             x <= maxX &&
@@ -420,6 +678,7 @@ function WorkplaceMain({
     );
   };
 
+
   /*
    * ==========================================
    * Popover Direction
@@ -430,10 +689,13 @@ function WorkplaceMain({
     object
   ) => {
     return (
-      (object?.position?.y ??
-        0) >= 3
+      (
+        object?.position?.y ??
+        0
+      ) >= 3
     );
   };
+
 
   /*
    * ==========================================
@@ -441,13 +703,15 @@ function WorkplaceMain({
    * ==========================================
    */
 
-  const createMap = () => {
-    setSelectedMapObjectId(
-      null
-    );
+  const createMap =
+    () => {
+      setSelectedMapObjectId(
+        null
+      );
 
-    onStartMapping();
-  };
+      onStartMapping();
+    };
+
 
   /*
    * ==========================================
@@ -467,28 +731,36 @@ function WorkplaceMain({
         return;
       }
 
+
       if (processing) {
         return;
       }
 
+
       try {
-        setProcessing(true);
+        setProcessing(
+          true
+        );
 
         setSelectedMapObjectId(
           null
         );
 
+
         const response =
           await fetch(
             `${API_URL}/workplaces/${workplace.id}/patrols/start`,
             {
-              method: "POST",
+              method:
+                "POST",
             }
           );
+
 
         if (!response.ok) {
           const errorData =
             await response.json();
+
 
           throw new Error(
             errorData.detail ||
@@ -496,16 +768,18 @@ function WorkplaceMain({
           );
         }
 
+
         const patrol =
           await response.json();
+
 
         setCurrentPatrolId(
           patrol.id
         );
 
-        setElapsedTime(0);
-
-        setCurrentEvents([]);
+        setElapsedTime(
+          0
+        );
 
         setPatrolStatus(
           "running"
@@ -515,141 +789,18 @@ function WorkplaceMain({
           error
         );
 
+
         alert(
           error.message ||
             "순찰을 시작할 수 없습니다."
         );
       } finally {
-        setProcessing(false);
+        setProcessing(
+          false
+        );
       }
     };
 
-  /*
-   * ==========================================
-   * Demo Event
-   * ==========================================
-   *
-   * A/B/C를 더 이상 사용하지 않습니다.
-   *
-   * Backend가 x, y 좌표를 보고
-   * 해당 Semantic Zone을 자동 판단합니다.
-   * ==========================================
-   */
-
-  const createDemoEvent =
-    async () => {
-      if (
-        patrolStatus !==
-          "running" ||
-        !currentPatrolId ||
-        processing
-      ) {
-        return;
-      }
-
-      try {
-        setProcessing(true);
-
-        const eventNumber =
-          currentEvents.length +
-          1;
-
-        let requestData;
-
-        if (
-          eventNumber % 2 ===
-          1
-        ) {
-          requestData = {
-            objectType:
-              "water_bottle",
-
-            objectName:
-              "물병",
-
-            zone: null,
-
-            zoneId: null,
-
-            x: 2.4,
-
-            y: 3.1,
-
-            distanceToCobot:
-              null,
-          };
-        } else {
-          requestData = {
-            objectType:
-              "box",
-
-            objectName:
-              "상자",
-
-            zone: null,
-
-            zoneId: null,
-
-            x: 3.1,
-
-            y: 2.6,
-
-            distanceToCobot:
-              0.72,
-          };
-        }
-
-        const response =
-          await fetch(
-            `${API_URL}/workplaces/${workplace.id}/patrols/${currentPatrolId}/events`,
-            {
-              method:
-                "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body:
-                JSON.stringify(
-                  requestData
-                ),
-            }
-          );
-
-        if (!response.ok) {
-          const errorData =
-            await response.json();
-
-          throw new Error(
-            errorData.detail ||
-              "변화 이벤트 처리 실패"
-          );
-        }
-
-        const event =
-          await response.json();
-
-        setCurrentEvents(
-          (prev) => [
-            event,
-            ...prev,
-          ]
-        );
-      } catch (error) {
-        console.error(
-          error
-        );
-
-        alert(
-          error.message ||
-            "변화 이벤트 처리 중 오류가 발생했습니다."
-        );
-      } finally {
-        setProcessing(false);
-      }
-    };
 
   /*
    * ==========================================
@@ -668,12 +819,16 @@ function WorkplaceMain({
         return;
       }
 
+
       try {
-        setProcessing(true);
+        setProcessing(
+          true
+        );
 
         setSelectedMapObjectId(
           null
         );
+
 
         const response =
           await fetch(
@@ -684,9 +839,11 @@ function WorkplaceMain({
             }
           );
 
+
         if (!response.ok) {
           const errorData =
             await response.json();
+
 
           throw new Error(
             errorData.detail ||
@@ -694,11 +851,15 @@ function WorkplaceMain({
           );
         }
 
+
         setPatrolStatus(
           "returning"
         );
 
-        setProcessing(false);
+        setProcessing(
+          false
+        );
+
 
         /*
          * 현재는 Mock 복귀
@@ -708,17 +869,23 @@ function WorkplaceMain({
          * completePatrol() 호출
          */
 
-        setTimeout(() => {
-          completePatrol(
-            currentPatrolId
-          );
-        }, 3000);
+        setTimeout(
+          () => {
+            completePatrol(
+              currentPatrolId
+            );
+          },
+          3000
+        );
       } catch (error) {
         console.error(
           error
         );
 
-        setProcessing(false);
+        setProcessing(
+          false
+        );
+
 
         alert(
           error.message ||
@@ -726,6 +893,7 @@ function WorkplaceMain({
         );
       }
     };
+
 
   /*
    * ==========================================
@@ -738,7 +906,10 @@ function WorkplaceMain({
       patrolId
     ) => {
       try {
-        setProcessing(true);
+        setProcessing(
+          true
+        );
+
 
         const response =
           await fetch(
@@ -749,9 +920,11 @@ function WorkplaceMain({
             }
           );
 
+
         if (!response.ok) {
           const errorData =
             await response.json();
+
 
           throw new Error(
             errorData.detail ||
@@ -759,8 +932,10 @@ function WorkplaceMain({
           );
         }
 
+
         const completedPatrol =
           await response.json();
+
 
         onSavePatrol(
           completedPatrol
@@ -770,9 +945,9 @@ function WorkplaceMain({
           "idle"
         );
 
-        setElapsedTime(0);
-
-        setCurrentEvents([]);
+        setElapsedTime(
+          0
+        );
 
         setCurrentPatrolId(
           null
@@ -782,21 +957,38 @@ function WorkplaceMain({
           error
         );
 
+
         alert(
           error.message ||
             "순찰 완료 처리 중 오류가 발생했습니다."
         );
       } finally {
-        setProcessing(false);
+        setProcessing(
+          false
+        );
       }
     };
 
+
+  /*
+   * ==========================================
+   * 실제 변화 통계
+   * ==========================================
+   */
+
+  const currentChangeCount =
+    robotEvents.length;
+
+
   const currentRiskCount =
-    currentEvents.filter(
+    robotEvents.filter(
       (event) =>
-        event.riskLevel ===
-        "HIGH"
+        event.risk_level ===
+          "MEDIUM" ||
+        event.risk_level ===
+          "HIGH"
     ).length;
+
 
   return (
     <div className="screen">
@@ -820,6 +1012,7 @@ function WorkplaceMain({
 
       </header>
 
+
       <main className="main-dashboard">
 
         {/* ================================= */}
@@ -836,6 +1029,7 @@ function WorkplaceMain({
           >
             안전정책
           </button>
+
 
           {/* ============================= */}
           {/* EMPTY */}
@@ -872,6 +1066,7 @@ function WorkplaceMain({
             </div>
           )}
 
+
           {/* ============================= */}
           {/* CREATING */}
           {/* ============================= */}
@@ -900,135 +1095,196 @@ function WorkplaceMain({
             </div>
           )}
 
-         {/* ============================= */}
-{/* READY */}
-{/* ============================= */}
 
-{mapStatus === "ready" && (
-  <div
-    className="map-container"
-    style={{
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      backgroundColor: "#f5f5f5",
-    }}
-  >
+          {/* ============================= */}
+          {/* READY */}
+          {/* ============================= */}
 
-    {/* 지도 + 구역을 정확히 겹치는 영역 */}
-    <div
-      style={{
-        position: "relative",
-        width: "744px",
-        height: "660px",
-      }}
-    >
-
-      {/* 실시간 환경지도 */}
-      <PixelGridMap workplaceId={workplace.id} />
-
-      {/* 저장된 구역 표시 */}
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          width: "100%",
-          height: "100%",
-          pointerEvents: "none",
-        }}
-      >
-
-        {mapZones.map((zone) => {
-
-          if (!zone.bounds) {
-            return null;
-          }
-
-          const minX = Math.min(
-            zone.bounds.x1,
-            zone.bounds.x2
-          );
-
-          const maxX = Math.max(
-            zone.bounds.x1,
-            zone.bounds.x2
-          );
-
-          const minY = Math.min(
-            zone.bounds.y1,
-            zone.bounds.y2
-          );
-
-          const maxY = Math.max(
-            zone.bounds.y1,
-            zone.bounds.y2
-          );
-
-          return (
+          {mapStatus ===
+            "ready" && (
             <div
-              key={zone.id}
+              className="map-container"
               style={{
-                position: "absolute",
-
-                left:
-                  `${(minX / 124) * 100}%`,
-
-                top:
-                  `${((110 - maxY) / 110) * 100}%`,
-
-                width:
-                  `${((maxX - minX) / 124) * 100}%`,
-
-                height:
-                  `${((maxY - minY) / 110) * 100}%`,
-
-                border:
-                  "2px solid rgba(0, 150, 255, 0.9)",
-
-                backgroundColor:
-                  "rgba(0, 150, 255, 0.15)",
-
-                boxSizing:
-                  "border-box",
-
                 display:
                   "flex",
-
-                alignItems:
-                  "center",
 
                 justifyContent:
                   "center",
 
-                color:
-                  "#0066aa",
+                alignItems:
+                  "center",
 
-                fontWeight:
-                  "bold",
-
-                fontSize:
-                  "14px",
-
-                pointerEvents:
-                  "none",
+                backgroundColor:
+                  "#f5f5f5",
               }}
             >
-              {zone.name}
+
+              <div
+                style={{
+                  position:
+                    "relative",
+
+                  width:
+                    "744px",
+
+                  height:
+                    "660px",
+                }}
+              >
+
+                <PixelGridMap
+                  workplaceId={
+                    workplace.id
+                  }
+                />
+
+
+                {/* 저장된 구역 표시 */}
+
+                <div
+                  style={{
+                    position:
+                      "absolute",
+
+                    left:
+                      0,
+
+                    top:
+                      0,
+
+                    width:
+                      "100%",
+
+                    height:
+                      "100%",
+
+                    pointerEvents:
+                      "none",
+                  }}
+                >
+
+                  {mapZones.map(
+                    (zone) => {
+                      if (
+                        !zone.bounds
+                      ) {
+                        return null;
+                      }
+
+
+                      const minX =
+                        Math.min(
+                          zone.bounds.x1,
+                          zone.bounds.x2
+                        );
+
+                      const maxX =
+                        Math.max(
+                          zone.bounds.x1,
+                          zone.bounds.x2
+                        );
+
+                      const minY =
+                        Math.min(
+                          zone.bounds.y1,
+                          zone.bounds.y2
+                        );
+
+                      const maxY =
+                        Math.max(
+                          zone.bounds.y1,
+                          zone.bounds.y2
+                        );
+
+
+                      return (
+                        <div
+                          key={
+                            zone.id
+                          }
+                          style={{
+                            position:
+                              "absolute",
+
+                            left:
+                              `${(
+                                minX /
+                                124
+                              ) * 100}%`,
+
+                            top:
+                              `${(
+                                (
+                                  110 -
+                                  maxY
+                                ) /
+                                110
+                              ) * 100}%`,
+
+                            width:
+                              `${(
+                                (
+                                  maxX -
+                                  minX
+                                ) /
+                                124
+                              ) * 100}%`,
+
+                            height:
+                              `${(
+                                (
+                                  maxY -
+                                  minY
+                                ) /
+                                110
+                              ) * 100}%`,
+
+                            border:
+                              "2px solid rgba(0, 150, 255, 0.9)",
+
+                            backgroundColor:
+                              "rgba(0, 150, 255, 0.15)",
+
+                            boxSizing:
+                              "border-box",
+
+                            display:
+                              "flex",
+
+                            alignItems:
+                              "center",
+
+                            justifyContent:
+                              "center",
+
+                            color:
+                              "#0066aa",
+
+                            fontWeight:
+                              "bold",
+
+                            fontSize:
+                              "14px",
+
+                            pointerEvents:
+                              "none",
+                          }}
+                        >
+                          {zone.name}
+                        </div>
+                      );
+                    }
+                  )}
+
+                </div>
+
+              </div>
+
             </div>
-          );
+          )}
 
-        })}
+        </section>
 
-      </div>
-
-    </div>
-
-  </div>
-)}
-
-                
-          </section>
 
         {/* ================================= */}
         {/* DASHBOARD */}
@@ -1039,6 +1295,7 @@ function WorkplaceMain({
           <h3>
             Dashboard
           </h3>
+
 
           {/* ============================= */}
           {/* RUNNING */}
@@ -1064,126 +1321,53 @@ function WorkplaceMain({
 
               </div>
 
+
               <div className="patrol-time">
                 {formatTime(
                   elapsedTime
                 )}
               </div>
 
+
               <div className="patrol-stats">
 
                 <div>
 
                   <span>
-                    탐지된 변화
+                    미확인 변화
                   </span>
 
                   <strong>
-                    {
-                      currentEvents.length
-                    }
+                    {currentChangeCount}
                   </strong>
 
                 </div>
 
+
                 <div>
 
                   <span>
-                    위험 이벤트
+                    확인 필요
                   </span>
 
                   <strong>
-                    {
-                      currentRiskCount
-                    }
+                    {currentRiskCount}
                   </strong>
 
                 </div>
 
               </div>
-              <ChangeDetectionPhoto />
-              {currentEvents.length >
-                0 && (
-                <div className="latest-event">
 
-                  <span>
-                    최근 탐지
-                  </span>
 
-                  <strong>
-                    {currentEvents[0]
-                      .zone ||
-                      "구역 외부"}
-                    {" · "}
-                    {
-                      currentEvents[0]
-                        .objectName
-                    }
-                  </strong>
-
-                  {currentEvents[0]
-                    .zoneType && (
-                    <span>
-                      공간 유형:{" "}
-                      {getZoneTypeName(
-                        currentEvents[0]
-                          .zoneType
-                      )}
-                    </span>
-                  )}
-
-                  <div
-                    className={
-                      currentEvents[0]
-                        .riskLevel ===
-                      "HIGH"
-                        ? "risk-high"
-                        : "risk-normal"
-                    }
-                  >
-                    {
-                      currentEvents[0]
-                        .riskLevel
-                    }
-                  </div>
-
-                  {currentEvents[0]
-                    .policyName && (
-                    <div>
-                      {
-                        currentEvents[0]
-                          .policyName
-                      }
-                    </div>
-                  )}
-
-                  {currentEvents[0]
-                    .action ===
-                    "COBOT_STOP" && (
-                    <div className="stop-command">
-                      협동로봇 작업 중단
-                    </div>
-                  )}
-
-                </div>
-              )}
-
-              <button
-                className="demo-event-button"
-                onClick={
-                  createDemoEvent
+              <ChangeDetectionPhoto
+                workplaceId={
+                  workplace.id
                 }
-                disabled={
-                  processing
-                }
-              >
-                {processing
-                  ? "처리 중..."
-                  : "+ 데모 변화 발생"}
-              </button>
+              />
 
             </div>
           )}
+
 
           {/* ============================= */}
           {/* RETURNING */}
@@ -1219,6 +1403,7 @@ function WorkplaceMain({
 
               </div>
 
+
               <div className="returning-time">
 
                 전체 순찰시간
@@ -1234,6 +1419,7 @@ function WorkplaceMain({
             </div>
           )}
 
+
           {/* ============================= */}
           {/* HISTORY */}
           {/* ============================= */}
@@ -1245,6 +1431,7 @@ function WorkplaceMain({
               <h4>
                 순찰 기록
               </h4>
+
 
               {workplace.patrols.map(
                 (patrol) => (
@@ -1271,16 +1458,19 @@ function WorkplaceMain({
                       <span>
                         탐지된 변화{" "}
                         {
-                          patrol.changeCount
+                          patrol.changeCount ||
+                          0
                         }
-                        개 · 위험{" "}
+                        개 · 확인 필요{" "}
                         {
-                          patrol.riskEventCount
+                          patrol.riskEventCount ||
+                          0
                         }
                         개
                       </span>
 
                     </div>
+
 
                     <div className="history-right">
 
@@ -1303,13 +1493,16 @@ function WorkplaceMain({
             </div>
           )}
 
+
           {patrolStatus ===
             "idle" &&
-            (!workplace.patrols ||
+            (
+              !workplace.patrols ||
               workplace
                 .patrols
                 .length ===
-                0) && (
+                0
+            ) && (
               <div className="empty-dashboard">
 
                 <strong>
@@ -1328,6 +1521,7 @@ function WorkplaceMain({
         </section>
 
       </main>
+
 
       {/* ================================= */}
       {/* BOTTOM */}
@@ -1350,6 +1544,7 @@ function WorkplaceMain({
           </button>
         )}
 
+
         {patrolStatus ===
           "returning" && (
           <button
@@ -1359,6 +1554,7 @@ function WorkplaceMain({
             ↩ 원점 복귀 중...
           </button>
         )}
+
 
         {patrolStatus ===
           "idle" && (
@@ -1382,5 +1578,6 @@ function WorkplaceMain({
     </div>
   );
 }
+
 
 export default WorkplaceMain;
