@@ -12,6 +12,7 @@ from pathlib import Path
 import requests
 from fastapi import (
     APIRouter,
+    Request,
     File,
     Form,
     HTTPException,
@@ -19,6 +20,7 @@ from fastapi import (
     UploadFile,
 )
 from fastapi.responses import FileResponse
+from starlette.concurrency import run_in_threadpool
 
 
 router = APIRouter(
@@ -73,6 +75,11 @@ AI_SERVER_URL = (
 )
 
 AI_TIMEOUT = 60.0
+
+# Preserve teammate VLM by default; select YOLO+zone policies explicitly.
+RISK_MODE = os.getenv("SAFETY_RISK_MODE", "vlm").strip().lower()
+if RISK_MODE not in {"vlm", "yolo_policy"}:
+    raise RuntimeError("SAFETY_RISK_MODE must be vlm or yolo_policy")
 
 
 # =========================================================
@@ -249,6 +256,7 @@ def analyze_with_ai(
 
 @router.post("")
 async def receive_robot_event(
+    request: Request,
     event_json: str = Form(...),
     baseline_image: UploadFile = File(...),
     current_image: UploadFile = File(...),
@@ -485,63 +493,70 @@ async def receive_robot_event(
     # VLM
     # -----------------------------------------------------
 
-    if valid_coords:
-        try:
-            ai_result = (
-                analyze_with_ai(
-                    baseline_path=(
-                        baseline_path
-                    ),
-                    current_path=(
-                        current_path
-                    ),
-                    x=x,
-                    y=y,
+    if RISK_MODE == "yolo_policy":
+        # YOLO detections were produced on Ubuntu; policy evaluation is local.
+        # This does NOT require OpenRouter or the separate VLM API server.
+        event["analysis"] = None
+        event["ai_status"] = "skipped_yolo_policy"
+    else:
+        if valid_coords:
+            try:
+                ai_result = (
+                    await run_in_threadpool(
+                        analyze_with_ai,
+                        baseline_path=(
+                            baseline_path
+                        ),
+                        current_path=(
+                            current_path
+                        ),
+                        x=x,
+                        y=y,
+                    )
                 )
-            )
 
-            event[
-                "ai_status"
-            ] = "success"
+                event[
+                    "ai_status"
+                ] = "success"
 
-            event[
-                "ai"
-            ] = ai_result
+                event[
+                    "ai"
+                ] = ai_result
 
-            event[
-                "analysis"
-            ] = ai_result.get(
-                "analysis"
-            )
+                event[
+                    "analysis"
+                ] = ai_result.get(
+                    "analysis"
+                )
 
-        except Exception as exc:
+            except Exception as exc:
+                event[
+                    "ai_status"
+                ] = "error"
+
+                event[
+                    "ai_error"
+                ] = str(exc)
+
+                event[
+                    "analysis"
+                ] = None
+
+        else:
             event[
                 "ai_status"
             ] = "error"
 
             event[
                 "ai_error"
-            ] = str(exc)
+            ] = (
+                "Valid event coordinates "
+                "not available."
+            )
 
             event[
                 "analysis"
             ] = None
-
-    else:
-        event[
-            "ai_status"
-        ] = "error"
-
-        event[
-            "ai_error"
-        ] = (
-            "Valid event coordinates "
-            "not available."
-        )
-
-        event[
-            "analysis"
-        ] = None
 
     # -----------------------------------------------------
     # Compatibility risk field
@@ -609,11 +624,8 @@ async def receive_robot_event(
         "risk"
     ] = {
         "is_danger": (
-            risk_level
-            in {
-                "MEDIUM",
-                "HIGH",
-            }
+            hazard_present
+            and risk_level in {"MEDIUM", "HIGH"}
         ),
         "risk_level":
             risk_level,
@@ -625,6 +637,30 @@ async def receive_robot_event(
             summary
             or None,
     }
+
+    if RISK_MODE == "yolo_policy":
+        evaluator = getattr(request.app.state, "robot_risk_evaluator", None)
+        if not callable(evaluator):
+            raise HTTPException(status_code=503, detail="YOLO policy engine unavailable")
+        rule_result = evaluator(event)
+        rule_danger = rule_result.get("is_danger") is True
+        risk_level = "HIGH" if rule_danger else "NORMAL"
+        hazard_present = rule_danger
+        summary = rule_result.get("reason") or ""
+        hazard_types = []
+        recommended_actions = []
+        event["risk"] = {
+            "is_danger": rule_danger,
+            "risk_level": risk_level,
+            "hazard_present": hazard_present,
+            "hazard_types": [],
+            "reason": summary or None,
+            "zoneId": rule_result.get("zoneId"),
+            "zoneName": rule_result.get("zoneName"),
+            "label": rule_result.get("label"),
+            "confidence": rule_result.get("confidence"),
+            "source": "yolo_policy",
+        }
 
     # -----------------------------------------------------
     # Save latest/history
@@ -652,13 +688,14 @@ async def receive_robot_event(
         )
 
     # -----------------------------------------------------
-    # Dashboard change marker
+    # Dashboard danger marker
     #
-    # LiDAR에서 이미 변화가 확정되어 넘어온 이벤트이므로
-    # 위험도와 관계없이 지도에 ⚠️를 표시한다.
+    # 지도 위 빨간 느낌표는 AI가 MEDIUM/HIGH 위험으로
+    # 판정한 경우에만 생성한다. 단순 ADDED/REMOVED와
+    # 분석 실패는 최신 이벤트 기록/사진만 남긴다.
     # -----------------------------------------------------
 
-    if valid_coords:
+    if valid_coords and event["risk"].get("is_danger") is True:
         with HAZARD_LOCK:
             hazards = (
                 load_hazards()
@@ -718,6 +755,8 @@ async def receive_robot_event(
                             "감지되었습니다."
                         ),
 
+                    "zoneName": event["risk"].get("zoneName"),
+                    "label": event["risk"].get("label"),
                     "situation":
                         summary,
 

@@ -9,13 +9,14 @@ from websocket_server import send_map
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from robot_event_api import router as robot_event_router, HISTORY_FILE
-from telemetry_api import router as telemetry_router
+from telemetry_api import router as telemetry_router, DATA_ROOT
 from pathlib import Path
 
+PATROL_CONTROLLER_TOKEN = os.getenv("SAFETY_PATROL_TOKEN", "").strip()
 PATROL_CONTROLLER_URL = os.getenv(
     "SAFETY_PATROL_CONTROLLER_URL",
     "http://127.0.0.1:8090",
@@ -316,14 +317,37 @@ def find_zone_for_position(
     포함되는지 확인합니다.
     """
 
+    # Coordinates emitted by /tf are in meters (ROS map frame).
+    # Browser-drawn semantic zones are stored in OccupancyGrid cell units.
+    # Use the exact map metadata uploaded for THIS workplace.
+    meta_file = DATA_ROOT / str(workplace.id) / "slam_map_meta.json"
+    if not meta_file.is_file():
+        return None  # Never use fabricated map geometry.
+    try:
+        meta = json.loads(meta_file.read_text(encoding="utf-8"))
+        ox = float(meta["origin"]["x"])
+        oy = float(meta["origin"]["y"])
+        yaw = float(meta["origin"].get("yaw", 0.0))
+        res = float(meta["resolution"])
+        width, height = int(meta["width"]), int(meta["height"])
+        if not all(math.isfinite(v) for v in (ox, oy, yaw, res)) or res <= 0:
+            return None
+        dx, dy = x - ox, y - oy
+        gx = (math.cos(yaw) * dx + math.sin(yaw) * dy) / res
+        gy = (-math.sin(yaw) * dx + math.cos(yaw) * dy) / res
+        if not (0 <= gx < width and 0 <= gy < height):
+            return None
+    except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError):
+        return None
+
     for zone in workplace.map.zones:
 
         bounds = zone.bounds
 
         if (
-            bounds.x1 <= x <= bounds.x2
+            bounds.x1 <= gx <= bounds.x2
             and
-            bounds.y1 <= y <= bounds.y2
+            bounds.y1 <= gy <= bounds.y2
         ):
             return zone
 
@@ -623,6 +647,16 @@ def evaluate_robot_event_risk(event: dict) -> dict:
 app.state.robot_risk_evaluator = evaluate_robot_event_risk
 
 # =========================================================
+# Live pose, scoped to workplace (backwards-compatible frontend route)
+# =========================================================
+@app.get("/workplaces/{workplace_id}/robot/position")
+def get_workplace_robot_position(workplace_id: int):
+    from telemetry_api import get_pose
+    get_workplace(workplace_id)
+    return get_pose(workplace_id)
+
+
+# =========================================================
 # Health
 # =========================================================
 
@@ -752,6 +786,14 @@ def scan_complete(
             ),
         )
 
+    # Mapping is not complete until a genuine ROS2 occupancy grid is uploaded.
+    map_dir = DATA_ROOT / str(workplace_id)
+    if not (map_dir / "slam_map.npy").is_file() or not (map_dir / "slam_map_meta.json").is_file():
+        raise HTTPException(
+            status_code=409,
+            detail="실제 TurtleBot /map을 아직 받지 못했습니다. ROS2 노드의 지도 업로드를 확인하세요.",
+        )
+
     workplace.map.status = (
         "zone_setup"
     )
@@ -760,83 +802,9 @@ def scan_complete(
 
     workplace.map.zones = []
 
-    # -----------------------------------------------------
-    # Mock Baseline Objects
-    # -----------------------------------------------------
-
-    workplace.map.objects = [
-        MapObject(
-            id=1,
-
-            detectedClass=
-                "robot",
-
-            name=
-                "미지정 객체 1",
-
-            type=
-                "cobot",
-
-            position=Position(
-                x=2.4,
-                y=3.1,
-            ),
-
-            zone=None,
-            zoneId=None,
-
-            status=
-                "baseline",
-        ),
-
-        MapObject(
-            id=2,
-
-            detectedClass=
-                "pallet",
-
-            name=
-                "미지정 객체 2",
-
-            type=
-                "storage",
-
-            position=Position(
-                x=4.2,
-                y=1.8,
-            ),
-
-            zone=None,
-            zoneId=None,
-
-            status=
-                "baseline",
-        ),
-
-        MapObject(
-            id=3,
-
-            detectedClass=
-                "workbench",
-
-            name=
-                "미지정 객체 3",
-
-            type=
-                "equipment",
-
-            position=Position(
-                x=1.5,
-                y=4.0,
-            ),
-
-            zone=None,
-            zoneId=None,
-
-            status=
-                "baseline",
-        ),
-    ]
+    # No fictitious robot/pallet/workbench. Populate baseline objects
+    # only from verified detection or explicit operator input.
+    workplace.map.objects = []
 
     save_workplaces()
     return {
@@ -1424,6 +1392,7 @@ def start_patrol(
                     waypoint_payload,
             },
             timeout=5,
+            headers={"X-Safety-Token": PATROL_CONTROLLER_TOKEN},
         )
 
         if not robot_response.ok:
@@ -1676,6 +1645,7 @@ def return_home(
                 + "/patrol/return-home"
             ),
             timeout=5,
+            headers={"X-Safety-Token": PATROL_CONTROLLER_TOKEN},
         )
 
         if not robot_response.ok:
@@ -1721,7 +1691,11 @@ def return_home(
 def complete_patrol(
     workplace_id: int,
     patrol_id: int,
+    x_safety_token: str = Header(default=""),
 ):
+    # Completion must be reported by the Ubuntu Nav2 controller, not a browser timer.
+    if not PATROL_CONTROLLER_TOKEN or x_safety_token != PATROL_CONTROLLER_TOKEN:
+        raise HTTPException(status_code=403, detail="Robot controller token required")
     workplace = get_workplace(
         workplace_id
     )
