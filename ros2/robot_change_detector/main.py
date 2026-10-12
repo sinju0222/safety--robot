@@ -152,15 +152,9 @@ class ChangeDetectorNode(Node):
         self.patrol_mode_file = Path(
             os.environ.get(
                 "SAFETY_PATROL_MODE_FILE",
-                str(
-                    Path(__file__)
-                    .resolve()
-                    .parent
-                    / "data"
-                    / "patrol_mode.json"
-                ),
+                str(self.output_dir / "patrol_mode.json"),
             )
-        )
+        ).expanduser()
 
         self.baseline_patrol = False
         self.last_patrol_mode = None
@@ -282,15 +276,12 @@ class ChangeDetectorNode(Node):
             )
         )
 
-        if self.baseline_patrol:
-            self.baseline_capture_timer = (
-                self.create_timer(
-                    1.0,
-                    self.capture_baseline_if_needed,
-                )
-            )
-        else:
-            self.baseline_capture_timer = None
+        # Patrol mode can change after this node starts.
+        # The callback checks the mode before capturing, so this
+        # timer must exist even if startup mode is IDLE.
+        self.baseline_capture_timer = self.create_timer(
+            1.0, self.capture_baseline_if_needed
+        )
 
         self.get_logger().info(
             "Robot Change Detector started"
@@ -368,17 +359,15 @@ class ChangeDetectorNode(Node):
     # ======================================================
 
     def map_callback(self, msg):
+        # Forward SLAM map updates to the dashboard, not just the first map.
+        # Keep the original baseline fixed for change detection.
+        if self.telemetry_sender.enabled:
+            self.telemetry_sender.update_map(msg)
+
         if self.baseline.map_ready:
             return
 
-        self.baseline.set_baseline_map(
-            msg
-        )
-
-        if self.telemetry_sender.enabled:
-            self.telemetry_sender.update_map(
-                msg
-            )
+        self.baseline.set_baseline_map(msg)
 
         self.get_logger().info(
             "Baseline map saved: "

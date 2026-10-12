@@ -390,7 +390,7 @@ function App() {
    * ==========================================
    *
    * 1. map/start
-   * 2. Mock Mapping
+   * 2. Wait for actual ROS2 /map upload
    * 3. scan-complete
    * 4. STEP 1 구역 설정
    */
@@ -443,26 +443,25 @@ function App() {
         );
 
 
-        /*
-         * --------------------------------------
-         * 현재는 Mock Mapping
-         *
-         * 추후 실제 구현:
-         * TurtleBot3
-         * → LiDAR
-         * → SLAM
-         * → Mapping 완료 신호
-         * --------------------------------------
-         */
-
-        await new Promise(
-          (resolve) =>
-            setTimeout(
-              resolve,
-              2500
-            )
+        // Wait for the REAL ROS2 occupancy grid uploaded by robot telemetry.
+        // Never accept a fixed delay as evidence that mapping is complete.
+        let receivedMap = false;
+        for (let attempt = 0; attempt < 60; attempt++) {
+          try {
+            const mapResponse = await fetch(
+              `${API_BASE}/api/telemetry/map-meta?workplace_id=${encodeURIComponent(workplaceId)}`,
+              { cache: "no-store" }
+            );
+            if (mapResponse.ok) {
+              receivedMap = true;
+              break;
+            }
+          } catch (error) { /* Retry while Ubuntu publishes /map */ }
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+        if (!receivedMap) throw new Error(
+          "실제 TurtleBot 지도가 수신되지 않았습니다. Ubuntu에서 /map과 지도 전송을 확인하세요."
         );
-
 
         /*
          * --------------------------------------

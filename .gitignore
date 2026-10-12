@@ -29,3 +29,9 @@ log/
 *.db
 *.sqlite3
 .vs/
+# Runtime robot uploads / generated data
+backend/robot_event_data/
+backend/robot_data/[0-9]*/
+backend/robot_data/workplaces.json
+ai_server/.env
+frontend/.env.local

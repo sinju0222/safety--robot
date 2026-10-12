@@ -1,4 +1,5 @@
 import json
+import hmac
 import math
 import os
 import threading
@@ -24,6 +25,8 @@ COMMAND_HOST = os.getenv(
     "0.0.0.0",
 )
 
+COMMAND_TOKEN = os.getenv("SAFETY_PATROL_TOKEN", "").strip()
+
 COMMAND_PORT = int(
     os.getenv(
         "SAFETY_PATROL_PORT",
@@ -31,43 +34,24 @@ COMMAND_PORT = int(
     )
 )
 
-PACKAGE_DIR = Path(
-    __file__
-).resolve().parent
+# Share writable patrol state with robot_change_detector/main.py.
+# Both ROS2 nodes must run as the same Linux user or set matching paths.
+SHARED_DIR = Path.home() / "robot_change_output"
 
-PATROL_MODE_FILE = Path(
-    os.getenv(
-        "SAFETY_PATROL_MODE_FILE",
-        str(
-            PACKAGE_DIR
-            / "data"
-            / "patrol_mode.json"
-        ),
-    )
-)
+PATROL_MODE_FILE = Path(os.getenv(
+    "SAFETY_PATROL_MODE_FILE",
+    str(SHARED_DIR / "patrol_mode.json"),
+)).expanduser()
 
-BASELINE_METADATA_FILE = Path(
-    os.getenv(
-        "SAFETY_BASELINE_IMAGE_METADATA",
-        str(
-            PACKAGE_DIR
-            / "data"
-            / "baseline_images.json"
-        ),
-    )
-)
+BASELINE_METADATA_FILE = Path(os.getenv(
+    "SAFETY_BASELINE_IMAGE_METADATA",
+    str(SHARED_DIR / "baseline_images.json"),
+)).expanduser()
 
-
-BASELINE_COMPLETE_FILE = Path(
-    os.getenv(
-        "SAFETY_BASELINE_COMPLETE_FILE",
-        str(
-            PACKAGE_DIR
-            / "data"
-            / "baseline_complete.json"
-        ),
-    )
-)
+BASELINE_COMPLETE_FILE = Path(os.getenv(
+    "SAFETY_BASELINE_COMPLETE_FILE",
+    str(SHARED_DIR / "baseline_complete.json"),
+)).expanduser()
 
 
 def yaw_to_quaternion(yaw):
@@ -371,6 +355,7 @@ class PatrolController(Node):
             response = requests.post(
                 url,
                 timeout=10,
+                headers={"X-Safety-Token": COMMAND_TOKEN},
             )
 
             response.raise_for_status()
@@ -552,6 +537,7 @@ class PatrolController(Node):
                 self.get_logger().info(
                     "Robot returned home."
                 )
+                self.notify_backend_complete()
             else:
                 self.get_logger().error(
                     "Failed to return home."
@@ -648,6 +634,12 @@ class CommandHandler(
         )
 
     def do_POST(self):
+        # Navigation commands are dangerous: require a shared secret on LAN.
+        if not COMMAND_TOKEN or not hmac.compare_digest(
+            self.headers.get("X-Safety-Token", ""), COMMAND_TOKEN
+        ):
+            self.send_json(403, {"detail": "Patrol token required/invalid"})
+            return
 
         try:
 

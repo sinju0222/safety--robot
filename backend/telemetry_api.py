@@ -91,3 +91,34 @@ def receive_robot_pose(payload: PoseUpload):
             "workplace_id": payload.workplace_id,
         })
     return {"saved": True}
+
+
+@router.get("/map-meta")
+def get_map_metadata(workplace_id: int):
+    """Grid dimensions/origin for editors and semantic-zone conversion."""
+    path = workspace_dir(workplace_id) / "slam_map_meta.json"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="로봇 지도 업로드 대기 중")
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise HTTPException(status_code=503, detail=f"지도 메타데이터 오류: {exc}")
+
+
+@router.get("/pose")
+def get_pose(workplace_id: int):
+    """Return only fresh robot pose; no fabricated defaults."""
+    path = workspace_dir(workplace_id) / "robot_pose.json"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="로봇 위치 수신 대기 중")
+    try:
+        pose = json.loads(path.read_text(encoding="utf-8"))
+        received = datetime.fromisoformat(pose["receivedAt"])
+        if received.tzinfo is None:
+            received = received.replace(tzinfo=timezone.utc)
+        age = (datetime.now(timezone.utc) - received).total_seconds()
+        if not (0 <= age <= 5):
+            raise HTTPException(status_code=404, detail="로봇 위치 수신 끊김")
+        return pose
+    except (ValueError, KeyError, OSError) as exc:
+        raise HTTPException(status_code=503, detail=f"로봇 위치 데이터 오류: {exc}")

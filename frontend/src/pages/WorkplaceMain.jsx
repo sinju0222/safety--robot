@@ -11,7 +11,7 @@ import PixelGridMap
 
 
 const API_URL =
-  "http://127.0.0.1:8000";
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 const MAP_SIZE = 6;
 
@@ -861,22 +861,8 @@ function WorkplaceMain({
         );
 
 
-        /*
-         * 현재는 Mock 복귀
-         *
-         * 추후 Nav2가 실제 Home Pose에
-         * 도착했다는 신호를 받으면
-         * completePatrol() 호출
-         */
-
-        setTimeout(
-          () => {
-            completePatrol(
-              currentPatrolId
-            );
-          },
-          3000
-        );
+        // Completion comes ONLY from Ubuntu Nav2 reaching home.
+        // The existing patrol status polling observes 'completed'.
       } catch (error) {
         console.error(
           error
@@ -1060,7 +1046,7 @@ function WorkplaceMain({
                   createMap
                 }
               >
-                지도 제작하기
+                실제 로봇 지도 불러오기
               </button>
 
             </div>
@@ -1083,9 +1069,8 @@ function WorkplaceMain({
               </strong>
 
               <p>
-                현재는 하드웨어 없이
-                Mock Mapping을 실행하고
-                있습니다.
+                실제 TurtleBot 지도를 기다리고 있습니다.
+                Ubuntu에서 지도 전송을 확인해주세요.
               </p>
 
               <span className="status-badge">
@@ -1125,10 +1110,13 @@ function WorkplaceMain({
                     "relative",
 
                   width:
-                    "744px",
+                    "min(100%, 1000px)",
 
                   height:
-                    "660px",
+                    "min(68vh, 660px)",
+
+                  minHeight:
+                    "350px",
                 }}
               >
 
@@ -1136,147 +1124,11 @@ function WorkplaceMain({
                   workplaceId={
                     workplace.id
                   }
+                  zones={mapZones}
                 />
 
 
-                {/* 저장된 구역 표시 */}
 
-                <div
-                  style={{
-                    position:
-                      "absolute",
-
-                    left:
-                      0,
-
-                    top:
-                      0,
-
-                    width:
-                      "100%",
-
-                    height:
-                      "100%",
-
-                    pointerEvents:
-                      "none",
-                  }}
-                >
-
-                  {mapZones.map(
-                    (zone) => {
-                      if (
-                        !zone.bounds
-                      ) {
-                        return null;
-                      }
-
-
-                      const minX =
-                        Math.min(
-                          zone.bounds.x1,
-                          zone.bounds.x2
-                        );
-
-                      const maxX =
-                        Math.max(
-                          zone.bounds.x1,
-                          zone.bounds.x2
-                        );
-
-                      const minY =
-                        Math.min(
-                          zone.bounds.y1,
-                          zone.bounds.y2
-                        );
-
-                      const maxY =
-                        Math.max(
-                          zone.bounds.y1,
-                          zone.bounds.y2
-                        );
-
-
-                      return (
-                        <div
-                          key={
-                            zone.id
-                          }
-                          style={{
-                            position:
-                              "absolute",
-
-                            left:
-                              `${(
-                                minX /
-                                124
-                              ) * 100}%`,
-
-                            top:
-                              `${(
-                                (
-                                  110 -
-                                  maxY
-                                ) /
-                                110
-                              ) * 100}%`,
-
-                            width:
-                              `${(
-                                (
-                                  maxX -
-                                  minX
-                                ) /
-                                124
-                              ) * 100}%`,
-
-                            height:
-                              `${(
-                                (
-                                  maxY -
-                                  minY
-                                ) /
-                                110
-                              ) * 100}%`,
-
-                            border:
-                              "2px solid rgba(0, 150, 255, 0.9)",
-
-                            backgroundColor:
-                              "rgba(0, 150, 255, 0.15)",
-
-                            boxSizing:
-                              "border-box",
-
-                            display:
-                              "flex",
-
-                            alignItems:
-                              "center",
-
-                            justifyContent:
-                              "center",
-
-                            color:
-                              "#0066aa",
-
-                            fontWeight:
-                              "bold",
-
-                            fontSize:
-                              "14px",
-
-                            pointerEvents:
-                              "none",
-                          }}
-                        >
-                          {zone.name}
-                        </div>
-                      );
-                    }
-                  )}
-
-                </div>
 
               </div>
 

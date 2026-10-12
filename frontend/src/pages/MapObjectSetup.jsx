@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PixelGridMap from "../PixelGridMap";
 
 const API_BASE = "http://127.0.0.1:8000";
 
 const MAP_SIZE = 6;
-const GRID_WIDTH = 124;
-const GRID_HEIGHT = 110;
+
 
 const ZONE_TYPES = [
   {
@@ -38,6 +37,40 @@ function MapObjectSetup({
   workplace,
   onComplete,
 }) {
+  const [mapMeta, setMapMeta] = useState(null);
+  const GRID_WIDTH = mapMeta?.width || 124;
+  const GRID_HEIGHT = mapMeta?.height || 110;
+  useEffect(() => {
+    let active = true;
+    let timer;
+    async function poll() {
+      try {
+        const response = await fetch(
+          `${API_BASE}/api/telemetry/map-meta?workplace_id=${encodeURIComponent(workplace.id)}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          if (active) setMapMeta(data);
+          return;
+        }
+      } catch (err) { /* map not uploaded yet */ }
+      if (active) timer = setTimeout(poll, 2000);
+    }
+    poll();
+    return () => { active = false; clearTimeout(timer); };
+  }, [workplace.id]);
+
+  function toGrid(position) {
+    if (!mapMeta || !position) return null;
+    const dx = Number(position.x) - mapMeta.origin.x;
+    const dy = Number(position.y) - mapMeta.origin.y;
+    const yaw = mapMeta.origin.yaw || 0;
+    const c = Math.cos(yaw), sn = Math.sin(yaw);
+    const gx = (c * dx + sn * dy) / mapMeta.resolution;
+    const gy = (-sn * dx + c * dy) / mapMeta.resolution;
+    return { x: gx, y: gy };
+  }
+
   const [objects, setObjects] = useState(
     workplace.map?.objects || []
   );
@@ -233,40 +266,13 @@ function MapObjectSetup({
    * ==========================================
    */
 
-  const convertPosition = (
-    position
-  ) => {
-    const x =
-      position?.x ?? 0;
-
-    const y =
-      position?.y ?? 0;
-
-    const left =
-      Math.max(
-        8,
-        Math.min(
-          92,
-          (x / MAP_SIZE) *
-            100
-        )
-      ) + "%";
-
-    const top =
-      Math.max(
-        10,
-        Math.min(
-          90,
-          100 -
-            (y / MAP_SIZE) *
-              100
-        )
-      ) + "%";
-
-    return {
-      left,
-      top,
-    };
+  const convertPosition = (position) => {
+    const grid = toGrid(position);
+    if (!grid) return { display: "none" };
+    if (grid.x < 0 || grid.y < 0 || grid.x >= GRID_WIDTH || grid.y >= GRID_HEIGHT)
+      return { display: "none" };
+    return { left: `${(grid.x / GRID_WIDTH) * 100}%`,
+      top: `${(1 - grid.y / GRID_HEIGHT) * 100}%` };
   };
 
   /*
@@ -286,19 +292,9 @@ function MapObjectSetup({
       return null;
     }
 
-  const x =
-  (
-    object.position.x /
-    MAP_SIZE
-  ) *
-  GRID_WIDTH;
-
-const y =
-  (
-    object.position.y /
-    MAP_SIZE
-  ) *
-  GRID_HEIGHT;
+    const grid = toGrid(object.position);
+    if (!grid) return null;
+    const { x, y } = grid;
     return (
       zones.find((zone) => {
         const bounds =
@@ -514,13 +510,19 @@ const y =
 
           <div
             className="setup-object-map"
+            style={{height: "auto", aspectRatio: `${GRID_WIDTH} / ${GRID_HEIGHT}`,
+              maxWidth: 900, margin: "0 auto"}}
             onClick={() =>
               setSelectedId(null)
             }
           >
 
+           {!mapMeta && <div style={{ position: "absolute", inset:0,
+               background: "#ffffffdd", display:"grid", placeItems:"center", zIndex:10 }}>
+               실제 ROS2 지도 업로드 대기 중 · 지도 수신 후 사물 위치를 확인하세요.
+             </div>}
            <div className="setup-live-map">
-  <PixelGridMap />
+  <PixelGridMap workplaceId={workplace.id} editor />
 </div>
 
             {/* ================================= */}

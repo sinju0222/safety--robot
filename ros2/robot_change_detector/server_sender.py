@@ -11,7 +11,7 @@ class ServerSender:
     def __init__(
         self,
         backend_url,
-        timeout=30.0,
+        timeout=90.0,
         retry_count=3,
         retry_delay=2.0,
     ):

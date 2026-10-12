@@ -2,14 +2,15 @@ import PixelGridMap from "../PixelGridMap";
 import {
     useRef,
     useState,
+    useEffect,
 } from "react";
 
 const API_BASE =
     "http://127.0.0.1:8000";
 
 const MAP_SIZE = 6;
-const GRID_WIDTH = 124;
-const GRID_HEIGHT = 110;
+// The editor follows real occupancy grid dimensions, not a fixed 124x110.
+
 
 const ZONE_TYPES = [
     {
@@ -42,6 +43,29 @@ function MapZoneSetup({
     workplace,
     onComplete,
 }) {
+    const [mapMeta, setMapMeta] = useState(null);
+    const GRID_WIDTH = mapMeta?.width || 124;
+    const GRID_HEIGHT = mapMeta?.height || 110;
+    useEffect(() => {
+        let active = true;
+        let timer;
+        async function load() {
+            try {
+                const res = await fetch(
+                    `${API_BASE}/api/telemetry/map-meta?workplace_id=${encodeURIComponent(workplace.id)}`
+                );
+                if (res.ok) {
+                    const info = await res.json();
+                    if (active) setMapMeta(info);
+                    return;
+                }
+            } catch (err) { /* ROS map not uploaded yet */ }
+            if (active) timer = setTimeout(load, 2000);
+        }
+        load();
+        return () => { active = false; clearTimeout(timer); };
+    }, [workplace.id]);
+
     const mapRef =
         useRef(null);
 
@@ -109,7 +133,7 @@ function MapZoneSetup({
     const getPointerPosition = (
         event
     ) => {
-        if (!mapRef.current) {
+        if (!mapRef.current || !mapMeta) {
             return null;
         }
 
@@ -254,7 +278,7 @@ const boundsToStyle = (
     const handlePointerDown = (
         event
     ) => {
-        if (pendingBounds) {
+        if (pendingBounds || !mapMeta) {
             return;
         }
 
@@ -845,6 +869,12 @@ onComplete(
                 <section className="zone-map-section">
                     <div
                         ref={mapRef}
+                        style={{
+                            height: "auto",
+                            aspectRatio: `${GRID_WIDTH} / ${GRID_HEIGHT}`,
+                            maxWidth: 900,
+                            margin: "0 auto",
+                        }}
                         className={
                             pendingBounds
                                 ? "zone-drawing-map selection-locked"
@@ -865,8 +895,13 @@ onComplete(
                             setCurrentRect(null);
                         }}
                     >
-                        {/* 🛑 가짜 벽들을 전부 지우고 PixelGridMap 컴포넌트를 배경으로 삽입 */}
-                        <PixelGridMap />
+                        {!mapMeta && <div style={{position:"absolute", inset:0,
+                            zIndex:10, display:"grid", placeItems:"center",
+                            color:"#333", background:"#ffffffd9"}}>
+                            실제 TurtleBot 지도를 기다리는 중입니다. /map을 먼저 웹으로 보내주세요.
+                        </div>}
+                        {/* Same occupancy grid in zone editor */}
+                        <PixelGridMap workplaceId={workplace.id} editor />
 
                         {zones.map(
                             (zone) => {
